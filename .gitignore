@@ -35,3 +35,34 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Frontend ###
+node_modules/
+/frontend/node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+/frontend/build/
+/frontend/dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+### Docker & Database ###
+db_data/
+mysql_data/
+postgres_data/
+
+# 도커 관련 로그나 임시 파일
+docker-compose.override.yml
+
+### OS & System Files ###
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+### Security  ###
+.env
