@@ -8,6 +8,11 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "C001", "입력값이 올바르지 않습니다."),
+
+    RESTAURANT_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "레스토랑이 존재하지 않습니다."),
+    
+    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "리뷰가 존재하지 않습니다."),
+
     INTERNAL_SERVER_ERROR(HttpStatus.BAD_GATEWAY, "C002", "서버 오류입니다.");
 
     private final HttpStatus status;
