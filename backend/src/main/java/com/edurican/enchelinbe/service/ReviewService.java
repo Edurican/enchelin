@@ -1,14 +1,17 @@
 package com.edurican.enchelinbe.service;
 
+import com.edurican.enchelinbe.common.OffsetLimit;
+import com.edurican.enchelinbe.common.Page;
 import com.edurican.enchelinbe.common.exception.BusinessException;
 import com.edurican.enchelinbe.common.exception.ErrorCode;
-import com.edurican.enchelinbe.dto.ReviewListResponse;
 import com.edurican.enchelinbe.dto.ReviewResponse;
 import com.edurican.enchelinbe.repository.RestaurantRepository;
 import com.edurican.enchelinbe.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.data.domain.Slice;
 
 import java.util.List;
 import java.util.Map;
@@ -29,12 +32,13 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public ReviewListResponse getRestaurantReview(Long restaurantId) {
+    public Page<ReviewResponse> getRestaurantReview(Long restaurantId, OffsetLimit offsetLimit) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
-        List<Review> reviews = reviewRepository.findByRestaurantId(restaurantId);
-        List<ReviewResponse> reviewResponseList = reviews.stream()
+        Slice<Review> reviewSlice = reviewRepository.findByRestaurantIdOrderByCreatedAtDesc(restaurantId, offsetLimit.toPageable());
+
+        List<ReviewResponse> reviewResponseList = reviewSlice.getContent().stream()
                 .map(review -> new ReviewResponse(
                         review.getId(),
                         "temp name",
@@ -44,22 +48,23 @@ public class ReviewService {
                         review.getCreatedAt()
                 ))
                 .toList();
-        
-        return new ReviewListResponse(reviewResponseList);
+
+        return new Page<>(reviewResponseList, reviewSlice.hasNext());
     }
 
     @Transactional(readOnly = true)
-    public ReviewListResponse getUserReview(Long userId) {
+    public Page<ReviewResponse> getUserReview(Long userId, OffsetLimit offsetLimit) {
         // 유저 추가되면 진짜 있는 유저인지 확인해야함
-        
-        List<Review> reviews = reviewRepository.findByUserId(userId);
 
-        List<Long> restaurantIds = reviews.stream().map(Review::getRestaurantId).toList();
+        Slice<Review> reviewSlice = reviewRepository.findByUserIdOrderByCreatedAtDesc(userId, offsetLimit.toPageable());
+        List<Review> content = reviewSlice.getContent();
+
+        List<Long> restaurantIds = content.stream().map(Review::getRestaurantId).toList();
         List<Restaurant> restaurants = restaurantRepository.findAllById(restaurantIds);
         Map<Long, String> restaurantNames = restaurants.stream()
                 .collect(Collectors.toMap(Restaurant::getId, Restaurant::getName));
 
-        List<ReviewResponse> reviewResponseList = reviews.stream()
+        List<ReviewResponse> reviewResponseList = content.stream()
                 .map(review -> new ReviewResponse(
                         review.getId(),
                         "temp name",
@@ -70,7 +75,7 @@ public class ReviewService {
                 ))
                 .toList();
 
-        return new ReviewListResponse(reviewResponseList);
+        return new Page<>(reviewResponseList, reviewSlice.hasNext());
     }
 
     @Transactional

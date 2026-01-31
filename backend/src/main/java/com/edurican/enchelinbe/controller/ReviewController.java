@@ -1,11 +1,11 @@
 package com.edurican.enchelinbe.controller;
 
+import com.edurican.enchelinbe.common.OffsetLimit;
+import com.edurican.enchelinbe.common.Page;
 import com.edurican.enchelinbe.common.response.ApiResponse;
 import com.edurican.enchelinbe.dto.CreateReviewRequest;
-import com.edurican.enchelinbe.dto.ReviewListResponse;
 import com.edurican.enchelinbe.dto.ReviewResponse;
 import com.edurican.enchelinbe.dto.UpdateReviewRequest;
-import com.edurican.enchelinbe.service.Review;
 import com.edurican.enchelinbe.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,15 +22,21 @@ public class ReviewController {
         return ApiResponse.success();
     }
 
-    @PatchMapping("/restaurants/{restaurantId}/reviews")
-    public ApiResponse<ReviewListResponse> getRestaurantReview(@PathVariable Long restaurantId) {
-        ReviewListResponse response = reviewService.getRestaurantReview(restaurantId);
+    @GetMapping("/restaurants/{restaurantId}/reviews")
+    public ApiResponse<Page<ReviewResponse>> getRestaurantReview(
+            @PathVariable Long restaurantId,
+            @ModelAttribute OffsetLimit offsetLimit
+    ) {
+        Page<ReviewResponse> response = reviewService.getRestaurantReview(restaurantId, offsetLimit);
         return ApiResponse.success(response);
     }
 
     @GetMapping("/users/{userId}/reviews")
-    public ApiResponse<ReviewListResponse> getUserReview(@PathVariable Long userId) {
-        ReviewListResponse response = reviewService.getUserReview(userId);
+    public ApiResponse<Page<ReviewResponse>> getUserReview(
+            @PathVariable Long userId,
+            @ModelAttribute OffsetLimit offsetLimit
+    ) {
+        Page<ReviewResponse> response = reviewService.getUserReview(userId, offsetLimit);
         return ApiResponse.success(response);
     }
 
