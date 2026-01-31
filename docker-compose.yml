@@ -11,7 +11,7 @@ services:
       POSTGRES_USER: flint
       POSTGRES_PASSWORD: flint1
     volumes:
-      - ./db_data:/var/lib/postgresql/data
+      - enchelin-db-data:/var/lib/postgresql/data
     restart: always
 
   backend:
@@ -27,3 +27,6 @@ services:
       SPRING_DATASOURCE_PASSWORD: flint1
       SPRING_JPA_HIBERNATE_DDL_AUTO: create
     restart: always
+
+volumes:
+  enchelin-db-data:
