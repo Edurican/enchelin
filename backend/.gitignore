@@ -66,3 +66,4 @@ Desktop.ini
 
 ### Security  ###
 .env
+application-local.yml
