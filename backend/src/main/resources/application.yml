@@ -1,17 +1,5 @@
 spring:
  application:
   name: enchelin
-
- datasource:
-  url: jdbc:postgresql://localhost:5432/enchelin-db
-  username: flint
-  password: flint1
-  driver-class-name: org.postgresql.Driver
-
- jpa:
-  hibernate:
-   ddl-auto: update
-  properties:
-   hibernate:
-    format_sql: true
-  show-sql: true
+ profiles:
+   active: local

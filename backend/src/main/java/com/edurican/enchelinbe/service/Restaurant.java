@@ -29,18 +29,26 @@ public class Restaurant {
     private String placeUrl;
 
     @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false)
     private Double x;
 
     @Column(nullable = false)
     private Double y;
 
     @Builder
-    public Restaurant(String kakaoApiId, String name, String category, String placeUrl, Double x, Double y) {
+    public Restaurant(String kakaoApiId, String name, String category, String placeUrl, String address, Double x, Double y) {
         this.kakaoApiId = kakaoApiId;
         this.name = name;
         this.category = category;
         this.placeUrl = placeUrl;
+        this.address = address;
         this.x = x;
         this.y = y;
+    }
+
+    public void updateCategory(String newCategory) {
+        this.category = newCategory;
     }
 }
