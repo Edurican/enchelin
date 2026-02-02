@@ -16,7 +16,7 @@ public class Restaurant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "kakao_api_id", nullable = false)
+    @Column(name = "kakao_api_id", nullable = false, unique = true)
     private String kakaoApiId;
 
     @Column(nullable = false)
@@ -26,13 +26,21 @@ public class Restaurant {
     private String category;
 
     @Column(nullable = false)
-    private String address;
+    private String placeUrl;
+
+    @Column(nullable = false)
+    private Double x;
+
+    @Column(nullable = false)
+    private Double y;
 
     @Builder
-    public Restaurant(String kakaoApiId, String name, String category, String address) {
+    public Restaurant(String kakaoApiId, String name, String category, String placeUrl, Double x, Double y) {
         this.kakaoApiId = kakaoApiId;
         this.name = name;
         this.category = category;
-        this.address = address;
+        this.placeUrl = placeUrl;
+        this.x = x;
+        this.y = y;
     }
 }
