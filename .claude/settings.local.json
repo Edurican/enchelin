@@ -1,0 +1,29 @@
+{
+  "enabledPlugins": {
+    "oh-my-claudecode@omc": true
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/stop-wip-commit.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/pre-tool-block-secrets.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
