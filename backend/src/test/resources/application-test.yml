@@ -1,0 +1,30 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:enchelin-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+
+jwt:
+  secret: dGVzdC1zZWNyZXQta2V5LWZvci1lbmNoZWxpbi1hcHBsaWNhdGlvbi10ZXN0aW5n
+  expiration: 3600000
+
+kakao:
+  api:
+    key: test-kakao-api-key
+
+github:
+  client-id: test-client-id
+  client-secret: test-client-secret
+  redirect-uri: http://localhost:8080/api/auth/github/callback
+
+app:
+  frontend-url: http://localhost:5173
