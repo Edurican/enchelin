@@ -2,7 +2,6 @@ package com.edurican.enchelinbe.service;
 
 import com.edurican.enchelinbe.dto.KakaoApiResponseDto;
 import com.edurican.enchelinbe.repository.RestaurantRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -18,15 +17,22 @@ import java.net.URI;
 import java.util.*;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class RestaurantService {
 
     private final RestaurantRepository  restaurantRepository;
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
 
     @Value("${kakao.api.key}")
     private String kakaoApiKey;
+
+    @Value("${kakao.api.base-url:https://dapi.kakao.com}")
+    private String kakaoApiBaseUrl;
+
+    public RestaurantService(RestaurantRepository restaurantRepository) {
+        this.restaurantRepository = restaurantRepository;
+        this.restTemplate = new RestTemplate();
+    }
 
     @Transactional
     public List<Restaurant> saveAndGetRestaurantsAround(Double x, Double y, int radius) {
@@ -44,7 +50,7 @@ public class RestaurantService {
             while (page <= 3) {
 
                 URI uri = UriComponentsBuilder
-                        .fromUriString("https://dapi.kakao.com")
+                        .fromUriString(kakaoApiBaseUrl)
                         .path("/v2/local/search/keyword.json")
                         .queryParam("query", keyword) //
                         .queryParam("x", x)

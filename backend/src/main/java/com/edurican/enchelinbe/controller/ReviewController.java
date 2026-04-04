@@ -1,5 +1,6 @@
 package com.edurican.enchelinbe.controller;
 
+import com.edurican.enchelinbe.auth.AuthenticatedUser;
 import com.edurican.enchelinbe.common.OffsetLimit;
 import com.edurican.enchelinbe.common.Page;
 import com.edurican.enchelinbe.common.response.ApiResponse;
@@ -17,8 +18,10 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping("/reviews")
-    public ApiResponse<?> createReview(@Valid @RequestBody CreateReviewRequest request) {
-        reviewService.createReview(request.userId(), request.restaurantId(), request.rating(), request.comment());
+    public ApiResponse<?> createReview(
+            @AuthenticatedUser Long userId,
+            @Valid @RequestBody CreateReviewRequest request) {
+        reviewService.createReview(userId, request.restaurantId(), request.rating(), request.comment());
         return ApiResponse.success();
     }
 

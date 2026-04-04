@@ -4,9 +4,6 @@ import jakarta.validation.constraints.*;
 
 public record CreateReviewRequest(
 
-        @NotNull(message = "유저의 아이디는 필수값입니다.")
-        Long userId,
-
         @NotNull(message = "레스토랑의 아이디는 필수값입니다.")
         Long restaurantId,
 
