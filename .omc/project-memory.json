@@ -195,6 +195,12 @@
       "type": "file"
     },
     {
+      "path": "backend\\src\\main\\resources\\application.yml",
+      "accessCount": 3,
+      "lastAccessed": 1775376902394,
+      "type": "file"
+    },
+    {
       "path": "frontend\\src\\assets\\main.css",
       "accessCount": 2,
       "lastAccessed": 1775300408047,
@@ -258,12 +264,6 @@
       "path": "backend\\src\\main\\java\\com\\edurican\\enchelinbe\\service\\ReviewService.java",
       "accessCount": 2,
       "lastAccessed": 1775353917485,
-      "type": "file"
-    },
-    {
-      "path": "backend\\src\\main\\resources\\application.yml",
-      "accessCount": 2,
-      "lastAccessed": 1775353919193,
       "type": "file"
     },
     {
