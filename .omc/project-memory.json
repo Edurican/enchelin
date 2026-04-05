@@ -111,6 +111,12 @@
       "type": "file"
     },
     {
+      "path": "backend\\src\\main\\resources\\application.yml",
+      "accessCount": 4,
+      "lastAccessed": 1775377153176,
+      "type": "file"
+    },
+    {
       "path": "frontend\\package.json",
       "accessCount": 3,
       "lastAccessed": 1775352478133,
@@ -192,12 +198,6 @@
       "path": "backend\\src\\main\\java\\com\\edurican\\enchelinbe\\common\\response\\ApiResponse.java",
       "accessCount": 3,
       "lastAccessed": 1775353955008,
-      "type": "file"
-    },
-    {
-      "path": "backend\\src\\main\\resources\\application.yml",
-      "accessCount": 3,
-      "lastAccessed": 1775376902394,
       "type": "file"
     },
     {

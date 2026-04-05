@@ -2,3 +2,8 @@ db_data/
 .idea/
 enchelin.iml
 .omc/state/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
