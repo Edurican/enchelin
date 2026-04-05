@@ -15,4 +15,28 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/restaurant': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/reviews': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/restaurants': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+      '/users': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
+    },
+  },
 })
