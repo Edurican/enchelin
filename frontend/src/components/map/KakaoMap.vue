@@ -74,10 +74,23 @@ function initMap() {
   })
 }
 
-onMounted(() => {
-  if (window.kakao && window.kakao.maps) {
-    initMap()
-  }
+function loadKakaoSDK() {
+  return new Promise((resolve, reject) => {
+    if (window.kakao && window.kakao.maps) {
+      resolve()
+      return
+    }
+    const script = document.createElement('script')
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_JS_KEY}&autoload=false`
+    script.onload = () => resolve()
+    script.onerror = () => reject(new Error('카카오맵 SDK 로딩 실패'))
+    document.head.appendChild(script)
+  })
+}
+
+onMounted(async () => {
+  await loadKakaoSDK()
+  initMap()
 })
 
 watch(() => props.markers, renderMarkers, { deep: true })
