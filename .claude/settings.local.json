@@ -1,7 +1,4 @@
 {
-  "enabledPlugins": {
-    "oh-my-claudecode@omc": true
-  },
   "hooks": {
     "Stop": [
       {
@@ -24,6 +21,14 @@
           }
         ]
       }
+    ]
+  },
+  "enabledPlugins": {
+    "oh-my-claudecode@omc": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)"
     ]
   }
 }
