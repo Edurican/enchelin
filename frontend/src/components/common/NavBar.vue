@@ -33,7 +33,11 @@ const navItems = [
   background: var(--color-bg);
   border-top: 1px solid var(--color-border);
   z-index: 100;
-  padding-bottom: env(safe-area-inset-bottom);
+  /* iOS 홈바(safe-area) 반영: 하단 여백 확보 */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  /* iOS 사이드 safe-area 반영 */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 .nav-item {
@@ -60,13 +64,21 @@ const navItems = [
 }
 
 @media (min-width: 768px) {
+  /* 데스크톱: 하단 fixed → 상단 sticky 전환 */
   .navbar {
-    position: static;
+    position: sticky;
+    top: 0;
+    bottom: auto;
     border-top: none;
     border-bottom: 1px solid var(--color-border);
     height: 48px;
     justify-content: center;
     gap: var(--space-8);
+    /* 상단 safe-area 반영 (노치 있는 기기 가로 모드 등) */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .nav-item {

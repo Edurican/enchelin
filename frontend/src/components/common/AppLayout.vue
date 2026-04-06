@@ -22,6 +22,9 @@ const showNav = computed(() => !hideNavRoutes.includes(route.name))
   display: flex;
   flex-direction: column;
   min-height: 100dvh;
+  /* iOS 노치/홈바 safe-area: 좌우 패딩 */
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
 }
 
 .app-main {
@@ -30,8 +33,9 @@ const showNav = computed(() => !hideNavRoutes.includes(route.name))
   flex-direction: column;
 }
 
+/* 모바일: NavBar가 하단 fixed이므로 본문 하단에 NavBar 높이 + safe-area 여백 확보 */
 .app-main--with-nav {
-  padding-bottom: 56px;
+  padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
 }
 
 @media (min-width: 768px) {
@@ -39,6 +43,7 @@ const showNav = computed(() => !hideNavRoutes.includes(route.name))
     flex-direction: column;
   }
 
+  /* 데스크톱: NavBar가 상단에 위치하므로 하단 패딩 불필요 */
   .app-main--with-nav {
     padding-bottom: 0;
   }
