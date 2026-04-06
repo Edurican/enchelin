@@ -18,7 +18,7 @@ const routes = [
     path: '/map',
     name: 'Map',
     component: () => import('@/views/MapView.vue'),
-    meta: { requiresAuth: false },
+    meta: { requiresAuth: true },
   },
   {
     path: '/restaurants/:id',

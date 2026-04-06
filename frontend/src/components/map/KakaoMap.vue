@@ -15,11 +15,16 @@ const emit = defineEmits(['marker-click', 'bounds-changed'])
 
 const mapContainer = ref(null)
 let map = null
+let clusterer = null
 let kakaoMarkers = []
 let activeInfoWindow = null
 
 function clearMarkers() {
-  kakaoMarkers.forEach((m) => m.setMap(null))
+  if (clusterer) {
+    clusterer.clear()
+  } else {
+    kakaoMarkers.forEach((m) => m.setMap(null))
+  }
   kakaoMarkers = []
   if (activeInfoWindow) {
     activeInfoWindow.close()
@@ -32,14 +37,14 @@ function renderMarkers() {
   clearMarkers()
 
   const { kakao } = window
-  props.markers.forEach((restaurant) => {
+  const newMarkers = props.markers.map((restaurant) => {
     const position = new kakao.maps.LatLng(restaurant.y, restaurant.x)
-    const marker = new kakao.maps.Marker({ map, position })
+    const marker = new kakao.maps.Marker({ position })
 
     const infoContent = `
       <div style="padding:8px 12px;font-size:13px;font-family:var(--font-family);min-width:140px;">
         <strong style="display:block;margin-bottom:2px;">${restaurant.name}</strong>
-        <span style="color:#6b7280;font-size:12px;">${restaurant.category}</span>
+        <span style="color:#6b7280;font-size:12px;">${restaurant.category ?? ''}</span>
       </div>
     `
     const infoWindow = new kakao.maps.InfoWindow({ content: infoContent })
@@ -51,7 +56,27 @@ function renderMarkers() {
       emit('marker-click', restaurant)
     })
 
-    kakaoMarkers.push(marker)
+    return marker
+  })
+
+  kakaoMarkers = newMarkers
+
+  if (clusterer) {
+    clusterer.addMarkers(newMarkers)
+  } else {
+    newMarkers.forEach((m) => m.setMap(map))
+  }
+}
+
+function emitBoundsChanged() {
+  const center = map.getCenter()
+  const bounds = map.getBounds()
+  const sw = bounds.getSouthWest()
+  const ne = bounds.getNorthEast()
+  emit('bounds-changed', {
+    center: { x: center.getLng(), y: center.getLat() },
+    sw: { lat: sw.getLat(), lng: sw.getLng() },
+    ne: { lat: ne.getLat(), lng: ne.getLng() },
   })
 }
 
@@ -65,10 +90,16 @@ function initMap() {
     }
     map = new kakao.maps.Map(container, options)
 
-    kakao.maps.event.addListener(map, 'idle', () => {
-      const center = map.getCenter()
-      emit('bounds-changed', { y: center.getLat(), x: center.getLng() })
-    })
+    // MarkerClusterer (SDK에 clusterer 라이브러리 포함 시 활성화)
+    if (kakao.maps.MarkerClusterer) {
+      clusterer = new kakao.maps.MarkerClusterer({
+        map,
+        averageCenter: true,
+        minLevel: 4,
+      })
+    }
+
+    kakao.maps.event.addListener(map, 'idle', emitBoundsChanged)
 
     renderMarkers()
   })
@@ -81,7 +112,8 @@ function loadKakaoSDK() {
       return
     }
     const script = document.createElement('script')
-    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${import.meta.env.VITE_KAKAO_JS_KEY}&autoload=false`
+    const appkey = import.meta.env.VITE_KAKAO_JS_KEY
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${appkey}&libraries=clusterer&autoload=false`
     script.onload = () => resolve()
     script.onerror = () => reject(new Error('카카오맵 SDK 로딩 실패'))
     document.head.appendChild(script)
@@ -95,15 +127,22 @@ onMounted(async () => {
 
 watch(() => props.markers, renderMarkers, { deep: true })
 
-watch(() => props.center, (newCenter) => {
-  if (map && window.kakao) {
-    const { kakao } = window
-    map.setCenter(new kakao.maps.LatLng(newCenter.lat, newCenter.lng))
-  }
-})
+watch(
+  () => props.center,
+  (newCenter) => {
+    if (map && window.kakao) {
+      const { kakao } = window
+      map.setCenter(new kakao.maps.LatLng(newCenter.lat, newCenter.lng))
+    }
+  },
+)
 
 onBeforeUnmount(() => {
   clearMarkers()
+  if (clusterer) {
+    clusterer.clear()
+    clusterer = null
+  }
 })
 </script>
 
