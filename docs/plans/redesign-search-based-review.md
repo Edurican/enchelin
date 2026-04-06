@@ -16,6 +16,49 @@
 
 ---
 
+## Development Methodology: TDD (필수)
+
+**본 재설계의 모든 구현 작업은 테스트 우선 개발(TDD) 사이클을 따른다.** 예외 없음.
+
+### 사이클
+1. **Red** — 실패하는 테스트를 먼저 작성한다. 테스트가 없는 코드를 먼저 쓰지 않는다.
+2. **Green** — 테스트를 통과시키는 최소한의 구현만 한다.
+3. **Refactor** — 통과 상태를 유지하면서 중복 제거 / 명명 개선 / 구조 정리.
+
+### 테스트 유형 & 도구
+
+**백엔드 (Spring Boot)**
+- **통합 테스트 우선**: JUnit 5 + Spring Boot Test + MockMvc/WebTestClient. 컨트롤러 → 서비스 → 리포지토리 전 계층을 관통하는 테스트.
+- **Fixture + AAA 패턴 (calfit 패턴 준수)**: Arrange(Fixture 준비) / Act(대상 호출) / Assert(결과 검증) 섹션을 명확히 구분. Fixture는 재사용 가능한 팩토리/빌더로 추출.
+- **DB 레이어**: Testcontainers(PostGIS 포함) 권장. H2로 대체 불가능한 PostGIS 기능은 Testcontainers Postgres 이미지 사용.
+- **단위 테스트**: 순수 로직(도메인 규칙, visitNumber 계산, 거리 계산 등)에 대해 빠른 단위 테스트 보완.
+- **테스트 명세 별도 관리**: 주요 유스케이스의 테스트 명세는 `backend/src/test/resources/specs/<feature>.md` 에 Given/When/Then 형식으로 별도 기록하고, 실제 테스트 코드가 이를 1:1로 반영한다.
+
+**프론트엔드 (Vue 3)**
+- **컴포넌트/스토어 테스트**: Vitest + Vue Test Utils. 스토어 액션(`loadByBounds`, `searchKakao`), 컴포넌트 상호작용(SearchBar 디바운스, Empty state), 라우터 가드 동작.
+- **E2E 플로우(옵션)**: Playwright로 핵심 3경로(로그인 → 지도 → 빈 상태 확인 / 검색 → 리뷰 작성 → 마커 생성 확인 / 마커 클릭 → 상세 → 리뷰 정렬 확인)를 최소 1개 이상 자동화.
+
+### 작업 순서 규칙
+- **엔드포인트 단위**: 새 엔드포인트 하나 = (명세 md → 통합 테스트 → 구현 → Green → 커밋) 한 사이클.
+- **컴포넌트 단위**: 새 컴포넌트/스토어 메서드 하나 = (테스트 → 구현 → Green → 커밋) 한 사이클.
+- **실패 테스트를 남긴 채 다음 항목으로 넘어가지 않는다.** 중간에 막히면 이슈에 코멘트로 상태 공유.
+- 리팩터 커밋과 기능 커밋은 분리 (커밋 메시지에서 구분 가능하도록).
+
+### 적용 예시 (Issue 1 BE)
+```
+1. backend/src/test/resources/specs/restaurants-bounds.md 작성
+   (Given: 리뷰된/리뷰 없는 식당 혼재 / When: GET /restaurants?sw...&ne... / Then: 리뷰 있는 것만)
+2. RestaurantControllerBoundsIntegrationTest.java 작성 → RED
+3. Restaurant.location 컬럼, Repository 쿼리, Service, Controller 구현 → GREEN
+4. 리팩터 (쿼리 상수화, DTO 정리)
+5. 커밋: "test(BE): /restaurants bounds 조회 통합 테스트", "feat(BE): /restaurants bounds 엔드포인트 구현"
+```
+
+### 참조
+- 사용자 메모리 `feedback_tdd_style.md` (통합 테스트 TDD, calfit 패턴 Fixture+AAA, 테스트 명세 별도 md 관리) 와 일관.
+
+---
+
 ## 변경 요약
 
 | 영역 | 기존 | 변경 |
