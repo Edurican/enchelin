@@ -46,6 +46,7 @@ const center = ref({ ...DEFAULT_CENTER })
 const locating = ref(true)
 const movedFromOrigin = ref(false)
 let lastSearchPos = { x: 0, y: 0 }
+let currentMapCenter = { x: 0, y: 0 }
 
 function loadRestaurants(x, y) {
   lastSearchPos = { x, y }
@@ -59,6 +60,7 @@ function onMarkerClick(restaurant) {
 }
 
 function onBoundsChanged({ x, y }) {
+  currentMapCenter = { x, y }
   const dx = Math.abs(x - lastSearchPos.x)
   const dy = Math.abs(y - lastSearchPos.y)
   if (dx > 0.005 || dy > 0.005) {
@@ -67,8 +69,8 @@ function onBoundsChanged({ x, y }) {
 }
 
 function searchHere() {
-  center.value = { lat: center.value.lat, lng: center.value.lng }
-  loadRestaurants(lastSearchPos.x + (center.value.lng - lastSearchPos.x), lastSearchPos.y + (center.value.lat - lastSearchPos.y))
+  center.value = { lat: currentMapCenter.y, lng: currentMapCenter.x }
+  loadRestaurants(currentMapCenter.x, currentMapCenter.y)
 }
 
 onMounted(() => {
