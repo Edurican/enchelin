@@ -20,7 +20,7 @@
           GitHub 프로필
         </a>
       </div>
-      <button class="btn btn-sm btn-secondary" @click="onLogout">로그아웃</button>
+      <button class="btn btn-sm btn-secondary logout-btn" @click="onLogout">로그아웃</button>
     </section>
 
     <section class="my-reviews">
@@ -150,6 +150,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .profile-avatar {
@@ -158,6 +159,7 @@ onMounted(() => {
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  max-width: 100%;
 }
 
 .profile-avatar--placeholder {
@@ -176,6 +178,9 @@ onMounted(() => {
 .profile-name {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-github {
@@ -183,9 +188,35 @@ onMounted(() => {
   color: var(--color-primary);
 }
 
+.logout-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .section-title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
   margin-bottom: var(--space-3);
+}
+
+/* 모바일: 프로필 카드 정렬 조정 */
+@media (max-width: 480px) {
+  .profile-card {
+    gap: var(--space-3);
+  }
+
+  .logout-btn {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+}
+
+/* 데스크톱: 카드 레이아웃 two-column (≥1024px) */
+@media (min-width: 1024px) {
+  .my-reviews .review-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-4);
+  }
 }
 </style>

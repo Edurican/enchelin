@@ -1,7 +1,10 @@
 <template>
   <div class="review-card card">
     <div class="review-header">
-      <span class="review-author">{{ review.userName }}</span>
+      <div class="review-header-left">
+        <span class="review-author">{{ review.userName }}</span>
+        <span v-if="review.visitNumber" class="visit-badge">{{ review.visitNumber }}번째 방문</span>
+      </div>
       <StarRating :rating="review.rating" size="sm" />
     </div>
     <p class="review-comment">{{ review.comment }}</p>
@@ -43,11 +46,33 @@ function formatDate(dateStr) {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.review-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .review-author {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+}
+
+.visit-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: var(--color-primary-light, #e8f4fd);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .review-comment {

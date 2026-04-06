@@ -6,6 +6,7 @@
       type="button"
       class="rating-star"
       :class="{ 'rating-star--active': i <= modelValue, 'rating-star--hover': i <= hoverValue }"
+      :aria-label="`${i}점`"
       @mouseenter="hoverValue = i"
       @mouseleave="hoverValue = 0"
       @click="$emit('update:modelValue', i)"
@@ -36,6 +37,12 @@ const hoverValue = ref(0)
 }
 
 .rating-star {
+  /* 터치 타깃 최소 36×36px */
+  min-width: 36px;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.75rem;
   color: var(--color-border);
   transition: color var(--transition), transform var(--transition);
