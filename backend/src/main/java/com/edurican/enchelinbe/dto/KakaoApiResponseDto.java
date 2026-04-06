@@ -54,5 +54,8 @@ public class KakaoApiResponseDto {
 
         @JsonProperty("place_url")
         private String placeUrl;
+
+        @JsonProperty("distance")
+        private String distance;
     }
 }

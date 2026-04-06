@@ -143,12 +143,22 @@ public class GET_specs {
         BaseFixture base = createFixture(environment, objectMapper);
         String token = authFixture.createUserAndGetToken();
 
-        // Act
+        // Act — kakaoApiId 기반 upsert이므로 새 식당으로 성공
         ResponseEntity<String> response = base.post(
-                "/reviews", java.util.Map.of("restaurantId", 99999, "rating", 3, "comment", "test"),
+                "/reviews", java.util.Map.of(
+                        "kakaoApiId", "auth-test-kakao",
+                        "name", "인증테스트식당",
+                        "category", "음식점",
+                        "address", "서울시 강남구",
+                        "placeUrl", "https://place.map.kakao.com/auth-test",
+                        "x", 127.0,
+                        "y", 37.5,
+                        "rating", 3,
+                        "comment", "인증확인"),
                 token, String.class);
 
-        // Assert — 404 (restaurant not found) means auth passed successfully
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        // Assert — 200 OK means auth passed and review created successfully
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("\"success\":true");
     }
 }

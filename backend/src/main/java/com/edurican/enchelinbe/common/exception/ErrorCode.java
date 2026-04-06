@@ -11,10 +11,15 @@ public enum ErrorCode {
 
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "A001", "인증이 필요합니다."),
     GITHUB_AUTH_FAILED(HttpStatus.BAD_REQUEST, "A002", "GitHub 인증에 실패했습니다."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "A003", "권한이 없습니다."),
 
     RESTAURANT_NOT_FOUND(HttpStatus.NOT_FOUND, "R001", "레스토랑이 존재하지 않습니다."),
 
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "RV001", "리뷰가 존재하지 않습니다."),
+
+    TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "C003", "요청이 너무 많습니다."),
+
+    KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "K001", "Kakao API 호출 중 오류가 발생했습니다."),
 
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C002", "서버 오류입니다.");
 

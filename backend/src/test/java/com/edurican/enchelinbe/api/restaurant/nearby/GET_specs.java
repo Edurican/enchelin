@@ -46,10 +46,10 @@ public class GET_specs {
   void 주변_식당을_검색하면_성공을_반환한다(
       @Autowired Environment environment,
       @Autowired ObjectMapper objectMapper) {
-    // Arrange
-    stubKakaoResponse("한식", kakaoResponse("kakao-100", "한식당", "음식점 > 한식", 127.0, 37.5));
-    stubEmptyForOtherKeywords("한식");
-
+    // Arrange — 단일 키워드 "음식점" 검색
+    wireMock.stubFor(get(urlPathEqualTo("/v2/local/search/keyword.json"))
+        .withQueryParam("query", equalTo("음식점"))
+        .willReturn(okJson(kakaoResponse("kakao-100", "한식당", "음식점 > 한식", 127.0, 37.5))));
     BaseFixture base = createFixture(environment, objectMapper);
 
     // Act
@@ -67,7 +67,8 @@ public class GET_specs {
       @Autowired Environment environment,
       @Autowired ObjectMapper objectMapper) {
     // Arrange
-    stubAllEmpty();
+    wireMock.stubFor(get(urlPathEqualTo("/v2/local/search/keyword.json"))
+        .willReturn(okJson(emptyKakaoResponse())));
     BaseFixture base = createFixture(environment, objectMapper);
 
     // Act
@@ -84,10 +85,11 @@ public class GET_specs {
   void 중복된_식당은_하나만_반환한다(
       @Autowired Environment environment,
       @Autowired ObjectMapper objectMapper) {
-    // Arrange: 두 키워드에서 같은 kakaoApiId로 반환
-    stubKakaoResponse("한식", kakaoResponse("kakao-200", "중복식당", "음식점 > 한식", 127.0, 37.5));
-    stubKakaoResponse("양식", kakaoResponse("kakao-200", "중복식당", "음식점 > 양식", 127.0, 37.5));
-    stubEmptyForOtherKeywords("한식", "양식");
+    // Arrange: 동일 kakaoApiId가 응답에 두 번 포함되더라도 한 번만 저장
+    wireMock.stubFor(get(urlPathEqualTo("/v2/local/search/keyword.json"))
+        .withQueryParam("query", equalTo("음식점"))
+        .willReturn(okJson(kakaoResponseMultiple(
+            "kakao-200", "중복식당", "음식점 > 한식", 127.0, 37.5))));
     BaseFixture base = createFixture(environment, objectMapper);
 
     // Act
@@ -102,51 +104,24 @@ public class GET_specs {
   }
 
   @Test
-  void Kakao_API_오류_시에도_수집된_결과를_반환한다(
+  void Kakao_API_오류_시에도_빈_목록을_반환한다(
       @Autowired Environment environment,
       @Autowired ObjectMapper objectMapper) {
-    // Arrange: 한식은 정상, 양식은 500 에러
-    stubKakaoResponse("한식", kakaoResponse("kakao-300", "정상식당", "음식점 > 한식", 127.0, 37.5));
+    // Arrange: 500 에러
     wireMock.stubFor(get(urlPathEqualTo("/v2/local/search/keyword.json"))
-        .withQueryParam("query", equalTo("양식"))
         .willReturn(serverError()));
-    stubEmptyForOtherKeywords("한식", "양식");
     BaseFixture base = createFixture(environment, objectMapper);
 
     // Act
     ResponseEntity<String> response = base.client().getForEntity(
         "/restaurant/nearby?x=127.0&y=37.5&radius=1000", String.class);
 
-    // Assert
+    // Assert: 에러 시 빈 목록 반환 (예외를 삼키고 빈 결과)
     assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).contains("정상식당");
+    assertThat(response.getBody()).contains("[]");
   }
 
   // ==================== Helper Methods ====================
-
-  private void stubKakaoResponse(String keyword, String responseBody) {
-    wireMock.stubFor(get(urlPathEqualTo("/v2/local/search/keyword.json"))
-        .withQueryParam("query", equalTo(keyword))
-        .willReturn(okJson(responseBody)));
-  }
-
-  private void stubEmptyForOtherKeywords(String... excludeKeywords) {
-    String[] allKeywords = {"한식", "양식", "일식", "중식", "분식", "태국음식", "베트남음식",
-        "치킨", "피자", "패스트푸드", "카페", "고기", "술집", "베이커리"};
-    java.util.Set<String> excluded = java.util.Set.of(excludeKeywords);
-    for (String kw : allKeywords) {
-      if (!excluded.contains(kw)) {
-        wireMock.stubFor(get(urlPathEqualTo("/v2/local/search/keyword.json"))
-            .withQueryParam("query", equalTo(kw))
-            .willReturn(okJson(emptyKakaoResponse())));
-      }
-    }
-  }
-
-  private void stubAllEmpty() {
-    wireMock.stubFor(get(urlPathEqualTo("/v2/local/search/keyword.json"))
-        .willReturn(okJson(emptyKakaoResponse())));
-  }
 
   private String emptyKakaoResponse() {
     return """
@@ -174,5 +149,28 @@ public class GET_specs {
           }]
         }
         """.formatted(id, name, category, x, y, id);
+  }
+
+  private String kakaoResponseMultiple(String id, String name, String category, double x, double y) {
+    // 같은 id를 두 개 포함 (중복 제거 검증용)
+    String doc = """
+        {
+          "id": "%s",
+          "place_name": "%s",
+          "category_name": "%s",
+          "road_address_name": "서울시 강남구 테스트로 1",
+          "address_name": "서울시 강남구",
+          "phone": "",
+          "x": "%s",
+          "y": "%s",
+          "place_url": "https://place.map.kakao.com/%s"
+        }
+        """.formatted(id, name, category, x, y, id);
+    return """
+        {
+          "meta": {"is_end": true, "pageable_count": 1},
+          "documents": [%s, %s]
+        }
+        """.formatted(doc, doc);
   }
 }
