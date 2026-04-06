@@ -17,8 +17,9 @@ public class FixtureConfiguration {
 
   @Bean
   @Scope("prototype")
-  ReviewFixture reviewFixture(Environment environment, ObjectMapper objectMapper) {
-    return ReviewFixture.create(environment, objectMapper);
+  ReviewFixture reviewFixture(Environment environment, ObjectMapper objectMapper,
+      RestaurantRepository restaurantRepository) {
+    return ReviewFixture.create(environment, objectMapper, restaurantRepository);
   }
 
   @Bean

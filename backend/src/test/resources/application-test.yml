@@ -1,17 +1,20 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:enchelin-test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=false
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: jdbc:tc:postgis:16-3.4:///enchelin-test
+    username: test
+    password: test
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 jwt:
   secret: dGVzdC1zZWNyZXQta2V5LWZvci1lbmNoZWxpbi1hcHBsaWNhdGlvbi10ZXN0aW5n

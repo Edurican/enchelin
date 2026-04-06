@@ -6,6 +6,7 @@ import com.edurican.enchelinbe.api.EnchelinApiTest;
 import com.edurican.enchelinbe.api.fixture.AuthFixture;
 import com.edurican.enchelinbe.api.fixture.RestaurantFixture;
 import com.edurican.enchelinbe.api.fixture.ReviewFixture;
+import com.edurican.enchelinbe.auth.JwtProvider;
 import com.edurican.enchelinbe.repository.ReviewRepository;
 import com.edurican.enchelinbe.service.Restaurant;
 import com.edurican.enchelinbe.service.Review;
@@ -24,12 +25,16 @@ public class DELETE_specs {
       @Autowired ReviewFixture reviewFixture,
       @Autowired RestaurantFixture restaurantFixture,
       @Autowired ReviewRepository reviewRepository,
-      @Autowired AuthFixture authFixture) {
+      @Autowired AuthFixture authFixture,
+      @Autowired JwtProvider jwtProvider) {
     // Arrange
     String token = authFixture.createUserAndGetToken();
+    Long userId = jwtProvider.getUserId(token);
     Restaurant restaurant = restaurantFixture.createRestaurant("kakao-40", "삭제맛집");
     reviewFixture.createReview(token, restaurant.getId(), 4, "삭제될리뷰");
-    Review review = reviewRepository.findAll().get(0);
+    Review review = reviewRepository.findAll().stream()
+        .filter(r -> r.getUserId().equals(userId) && r.getComment().equals("삭제될리뷰"))
+        .findFirst().orElseThrow();
 
     // Act
     ResponseEntity<String> response = reviewFixture.deleteReview(token, review.getId());
@@ -58,14 +63,16 @@ public class DELETE_specs {
       @Autowired ReviewFixture reviewFixture,
       @Autowired RestaurantFixture restaurantFixture,
       @Autowired ReviewRepository reviewRepository,
-      @Autowired AuthFixture authFixture) {
+      @Autowired AuthFixture authFixture,
+      @Autowired JwtProvider jwtProvider) {
     // Arrange
     String token = authFixture.createUserAndGetToken();
+    Long userId = jwtProvider.getUserId(token);
     Restaurant restaurant = restaurantFixture.createRestaurant("kakao-41", "삭제확인식당");
     reviewFixture.createReview(token, restaurant.getId(), 5, "남을리뷰");
     reviewFixture.createReview(token, restaurant.getId(), 1, "삭제될리뷰");
     Review toDelete = reviewRepository.findAll().stream()
-        .filter(r -> r.getComment().equals("삭제될리뷰"))
+        .filter(r -> r.getUserId().equals(userId) && r.getComment().equals("삭제될리뷰"))
         .findFirst().orElseThrow();
     reviewFixture.deleteReview(token, toDelete.getId());
 

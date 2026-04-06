@@ -8,6 +8,10 @@ public record RestaurantFixture(RestaurantRepository restaurantRepository) {
   // ==================== Data Setup ====================
 
   public Restaurant createRestaurant(String kakaoApiId, String name) {
+    return createRestaurantAt(kakaoApiId, name, 127.0, 37.5);
+  }
+
+  public Restaurant createRestaurantAt(String kakaoApiId, String name, double x, double y) {
     return restaurantRepository.save(
         Restaurant.builder()
             .kakaoApiId(kakaoApiId)
@@ -15,8 +19,8 @@ public record RestaurantFixture(RestaurantRepository restaurantRepository) {
             .category("음식점")
             .placeUrl("https://place.map.kakao.com/" + kakaoApiId)
             .address("서울시 강남구")
-            .x(127.0)
-            .y(37.5)
+            .x(x)
+            .y(y)
             .build());
   }
 

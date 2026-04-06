@@ -21,16 +21,17 @@ public class ReviewController {
     public ApiResponse<?> createReview(
             @AuthenticatedUser Long userId,
             @Valid @RequestBody CreateReviewRequest request) {
-        reviewService.createReview(userId, request.restaurantId(), request.rating(), request.comment());
+        reviewService.createReview(userId, request);
         return ApiResponse.success();
     }
 
     @GetMapping("/restaurants/{restaurantId}/reviews")
     public ApiResponse<Page<ReviewResponse>> getRestaurantReview(
             @PathVariable Long restaurantId,
-            @ModelAttribute OffsetLimit offsetLimit
+            @ModelAttribute OffsetLimit offsetLimit,
+            @RequestParam(value = "sort", defaultValue = "latest") String sort
     ) {
-        Page<ReviewResponse> response = reviewService.getRestaurantReview(restaurantId, offsetLimit);
+        Page<ReviewResponse> response = reviewService.getRestaurantReview(restaurantId, offsetLimit, sort);
         return ApiResponse.success(response);
     }
 
@@ -43,16 +44,20 @@ public class ReviewController {
         return ApiResponse.success(response);
     }
 
-    // 유저 디테일 추가되면 변경하면 됨
     @PutMapping("/reviews/{reviewId}")
-    public ApiResponse<ReviewResponse> updateReview(@PathVariable Long reviewId, @Valid @RequestBody UpdateReviewRequest request) {
-        ReviewResponse response = reviewService.updateReview(reviewId, request.rating(), request.comment());
+    public ApiResponse<ReviewResponse> updateReview(
+            @AuthenticatedUser Long userId,
+            @PathVariable Long reviewId,
+            @Valid @RequestBody UpdateReviewRequest request) {
+        ReviewResponse response = reviewService.updateReview(userId, reviewId, request.rating(), request.comment());
         return ApiResponse.success(response);
     }
 
     @DeleteMapping("/reviews/{reviewId}")
-    public ApiResponse<?> deleteReview(@PathVariable Long reviewId) {
-        reviewService.deleteReview(reviewId);
+    public ApiResponse<?> deleteReview(
+            @AuthenticatedUser Long userId,
+            @PathVariable Long reviewId) {
+        reviewService.deleteReview(userId, reviewId);
         return ApiResponse.success();
     }
 }

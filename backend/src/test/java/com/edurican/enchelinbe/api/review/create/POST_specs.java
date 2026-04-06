@@ -41,7 +41,13 @@ public class POST_specs {
   void 인증_없이_요청하면_401을_반환한다(@Autowired ReviewFixture reviewFixture) {
     // Arrange
     Map<String, Object> body = Map.of(
-        "restaurantId", 1L,
+        "kakaoApiId", "kakao-unauth",
+        "name", "식당",
+        "category", "음식점",
+        "address", "서울시 강남구",
+        "placeUrl", "https://place.map.kakao.com/x",
+        "x", 127.0,
+        "y", 37.5,
         "rating", 4,
         "comment", "맛있어요");
 
@@ -53,12 +59,18 @@ public class POST_specs {
   }
 
   @Test
-  void restaurantId_누락_시_실패한다(
+  void kakaoApiId_누락_시_실패한다(
       @Autowired ReviewFixture reviewFixture,
       @Autowired AuthFixture authFixture) {
     // Arrange
     String token = authFixture.createUserAndGetToken();
     Map<String, Object> body = new HashMap<>();
+    body.put("name", "식당");
+    body.put("category", "음식점");
+    body.put("address", "서울시 강남구");
+    body.put("placeUrl", "https://place.map.kakao.com/x");
+    body.put("x", 127.0);
+    body.put("y", 37.5);
     body.put("rating", 3);
     body.put("comment", "괜찮아요");
 
@@ -78,7 +90,13 @@ public class POST_specs {
     String token = authFixture.createUserAndGetToken();
     Restaurant restaurant = restaurantFixture.createRestaurant("kakao-3", "식당3");
     Map<String, Object> body = new HashMap<>();
-    body.put("restaurantId", restaurant.getId());
+    body.put("kakaoApiId", restaurant.getKakaoApiId());
+    body.put("name", restaurant.getName());
+    body.put("category", "음식점");
+    body.put("address", "서울시 강남구");
+    body.put("placeUrl", "https://place.map.kakao.com/kakao-3");
+    body.put("x", 127.0);
+    body.put("y", 37.5);
     body.put("comment", "괜찮아요");
 
     // Act
@@ -97,7 +115,13 @@ public class POST_specs {
     String token = authFixture.createUserAndGetToken();
     Restaurant restaurant = restaurantFixture.createRestaurant("kakao-4", "식당4");
     Map<String, Object> body = new HashMap<>();
-    body.put("restaurantId", restaurant.getId());
+    body.put("kakaoApiId", restaurant.getKakaoApiId());
+    body.put("name", restaurant.getName());
+    body.put("category", "음식점");
+    body.put("address", "서울시 강남구");
+    body.put("placeUrl", "https://place.map.kakao.com/kakao-4");
+    body.put("x", 127.0);
+    body.put("y", 37.5);
     body.put("rating", 3);
 
     // Act
@@ -108,17 +132,18 @@ public class POST_specs {
   }
 
   @Test
-  void 존재하지_않는_restaurantId로_요청하면_실패한다(
+  void 존재하지_않는_kakaoApiId로_요청하면_식당이_신규_생성되고_성공한다(
       @Autowired ReviewFixture reviewFixture,
       @Autowired AuthFixture authFixture) {
     // Arrange
     String token = authFixture.createUserAndGetToken();
 
-    // Act
-    ResponseEntity<String> response = reviewFixture.createReview(token, 99999L, 4, "맛있어요");
+    // Act — upsert이므로 없는 식당도 성공
+    ResponseEntity<String> response =
+        reviewFixture.createReviewWithKakaoId(token, "brand-new-kakao", "새식당", 4, "맛있어요");
 
     // Assert
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
   }
 
   @Test

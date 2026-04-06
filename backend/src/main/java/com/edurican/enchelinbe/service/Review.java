@@ -16,10 +16,6 @@ import static com.edurican.enchelinbe.common.exception.ErrorCode.INVALID_INPUT;
                 @Index(name = "idx_review_user_latest", columnList = "user_id, created_at"),
                 @Index(name = "idx_review_restaurant_latest", columnList = "restaurant_id, created_at")
         }
-        // 만약에 같은 레스토랑에 리뷰를 또 달 수 없도록 하고 싶다면 유니크 만들기
-//        uniqueConstraints = {
-//                @UniqueConstraint(name = "uk_review_user_restaurant", columnNames = {"user_id", "restaurant_id"})
-//        }
 )
 public class Review extends BaseEntity {
 
@@ -35,12 +31,15 @@ public class Review extends BaseEntity {
     @Column(name = "comment", length = 100, nullable = false)
     private String comment;
 
-    public Review(Long userId, Long restaurantId, Integer rating, String comment) {
-        if (userId == null || restaurantId == null || rating == null || comment == null) {
+    @Column(name = "visit_number", nullable = false)
+    private Integer visitNumber;
+
+    public Review(Long userId, Long restaurantId, Integer rating, String comment, Integer visitNumber) {
+        if (userId == null || restaurantId == null || rating == null || comment == null || visitNumber == null) {
             throw new BusinessException(INVALID_INPUT);
         }
 
-        if(!validRating(rating)) {
+        if (!validRating(rating)) {
             throw new BusinessException(INVALID_INPUT);
         }
 
@@ -48,6 +47,7 @@ public class Review extends BaseEntity {
         this.restaurantId = restaurantId;
         this.rating = rating;
         this.comment = comment;
+        this.visitNumber = visitNumber;
     }
 
     public Long getUserId() {
@@ -62,12 +62,16 @@ public class Review extends BaseEntity {
         return rating;
     }
 
+    public Integer getVisitNumber() {
+        return visitNumber;
+    }
+
     public void update(Integer rating, String comment) {
         if (rating == null || comment == null) {
             throw new BusinessException(INVALID_INPUT);
         }
 
-        if(!validRating(rating)) {
+        if (!validRating(rating)) {
             throw new BusinessException(INVALID_INPUT);
         }
 
