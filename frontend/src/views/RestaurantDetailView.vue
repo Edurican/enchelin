@@ -5,7 +5,7 @@
       v-else-if="error"
       :message="error"
       :retry="true"
-      @retry="loadReviews"
+      @retry="resetAndLoadReviews"
     />
     <template v-else-if="restaurant">
       <section class="restaurant-info card">
@@ -32,13 +32,25 @@
       <section class="reviews-section">
         <div class="reviews-header">
           <h2 class="reviews-title">리뷰</h2>
-          <router-link
-            v-if="auth.isAuthenticated"
-            :to="{ name: 'ReviewCreate', query: { restaurantId: restaurant.id } }"
-            class="btn btn-sm btn-primary"
-          >
-            리뷰 작성
-          </router-link>
+          <div class="reviews-controls">
+            <select
+              v-model="sort"
+              class="sort-select"
+              aria-label="리뷰 정렬"
+              @change="resetAndLoadReviews"
+            >
+              <option value="latest">최신순</option>
+              <option value="rating_desc">별점 높은순</option>
+              <option value="rating_asc">별점 낮은순</option>
+            </select>
+            <router-link
+              v-if="auth.isAuthenticated"
+              :to="writeReviewRoute"
+              class="btn btn-sm btn-primary"
+            >
+              리뷰 작성
+            </router-link>
+          </div>
         </div>
 
         <ReviewList
@@ -91,11 +103,31 @@ const hasNext = ref(false)
 const offset = ref(0)
 const LIMIT = 10
 const deleteTarget = ref(null)
+const sort = ref('latest')
 
 const avgRating = computed(() => {
   if (reviews.value.length === 0) return 0
   const sum = reviews.value.reduce((acc, r) => acc + r.rating, 0)
   return sum / reviews.value.length
+})
+
+// 리뷰 작성 버튼: kakaoApiId가 있으면 스냅샷 경로, 없으면 restaurantId 경로
+const writeReviewRoute = computed(() => {
+  if (restaurant.value?.kakaoApiId) {
+    return {
+      name: 'ReviewCreate',
+      query: {
+        kakaoApiId: restaurant.value.kakaoApiId,
+        name: restaurant.value.name,
+        category: restaurant.value.category,
+        address: restaurant.value.address,
+        placeUrl: restaurant.value.placeUrl,
+        x: restaurant.value.x,
+        y: restaurant.value.y,
+      },
+    }
+  }
+  return { name: 'ReviewCreate', query: { restaurantId: restaurant.value?.id } }
 })
 
 function isOwner(review) {
@@ -106,7 +138,7 @@ async function loadReviews() {
   reviewsLoading.value = true
   error.value = ''
   try {
-    const page = await fetchRestaurantReviews(restaurant.value.id, offset.value, LIMIT)
+    const page = await fetchRestaurantReviews(restaurant.value.id, offset.value, LIMIT, sort.value)
     if (offset.value === 0) {
       reviews.value = page.contents
     } else {
@@ -118,6 +150,12 @@ async function loadReviews() {
   } finally {
     reviewsLoading.value = false
   }
+}
+
+function resetAndLoadReviews() {
+  offset.value = 0
+  reviews.value = []
+  loadReviews()
 }
 
 function loadMore() {
@@ -161,7 +199,6 @@ onMounted(async () => {
     try {
       restaurant.value = await fetchRestaurantDetail(id)
     } catch {
-      // 단일 조회 API 미구현 시 에러 처리
       error.value = '식당 정보를 불러올 수 없습니다. 지도에서 식당을 선택해주세요.'
       loading.value = false
       return
@@ -207,6 +244,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   margin-top: var(--space-2);
 }
 
@@ -232,10 +271,52 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .reviews-title {
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
+}
+
+.reviews-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.sort-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 6px 28px 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  min-height: 36px;
+}
+
+.sort-select:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* 모바일: 헤더 컨트롤 세로 배치 */
+@media (max-width: 480px) {
+  .reviews-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .reviews-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 </style>
