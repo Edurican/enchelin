@@ -82,6 +82,8 @@ git checkout -b feat/issue-{BE이슈번호}-ai-review-summary
 | 재시도 | 클라이언트 내 수동 3회 지수 백오프 | spring-retry 의존성 불필요 |
 | BaseEntity 상속 | **안 함** | PK 전략 상이 (auto-increment X), status/createdAt 불필요 |
 | 추가 의존성 | **0개** | RestClient, Hibernate 6 JSON/ARRAY, MessageDigest 모두 기존 스택 |
+| 요약 구조 | **카테고리 기반 태그** | 자유 텍스트(positive/negative) 대신 9개 카테고리별 태그 + evidenceReviewIds |
+| mentionCount | **제거** | evidenceReviewIds.length로 대체 — Claude 생성 오류 원인 제거 |
 
 ---
 
@@ -116,8 +118,18 @@ CREATE INDEX idx_summary_generated_at ON restaurant_review_summary (generated_at
   - `summaryJson` (@JdbcTypeCode JSON → `SummaryJson` 객체)
   - `sourceReviewIds` (@JdbcTypeCode ARRAY → `Long[]`)
 - `service/SummaryJson.java` — summary_json JSONB 매핑 record
-  - 사용자 스펙 그대로: `overallTone`, `positivePoints[]`, `negativePoints[]`, `signatureMenu[]`
-  - 각 항목에 `point/name`, `mentionCount`, `evidenceReviewIds`
+  - **카테고리 기반 9개 필드** (각 필드 nullable — 리뷰에 언급 없으면 null):
+    - `atmosphere` — 분위기 (편안한 분위기, 소박한 분위기 등)
+    - `parking` — 주차 공간 (건물 지하 주차 가능 등)
+    - `visitPurpose` — 방문 목적 (점심식사, 기념일 등)
+    - `taste` — 맛 (고소한, 짭조름한 등)
+    - `signatureMenu` — 대표 메뉴 (크림파스타, 함박스테이크 등)
+    - `companion` — 동반인 (친구, 연인 등)
+    - `service` — 서비스 (친절한 직원, 빠른 응대 등)
+    - `costPerformance` — 가성비/가격대 (가성비 좋은 편 등)
+    - `portion` — 양/포션 (양이 넉넉한 편 등)
+  - 각 항목 구조: `TagItem` record — `tag` (String) + `evidenceReviewIds` (List<Long>)
+  - `mentionCount` 없음 — `evidenceReviewIds.size()`로 대체
 - `repository/RestaurantReviewSummaryRepository.java`
 
 **수정 파일:**
@@ -143,7 +155,11 @@ CREATE INDEX idx_summary_generated_at ON restaurant_review_summary (generated_at
   - `RestClient.create()` (GitHubClient 패턴)
   - `@Value("${anthropic.api-key}")` 로 키 주입
   - POST `https://api.anthropic.com/v1/messages` (model: claude-sonnet-4-6, temp: 0.2)
-  - 시스템 프롬프트에 JSON 스키마 강제 + 사용자 스펙의 6개 제약 조건
+  - 시스템 프롬프트에 9개 카테고리 JSON 스키마 강제 + 제약 조건:
+    1. `evidenceReviewIds`는 입력 리뷰 ID만 사용
+    2. `tag`는 한국어 자연어 문장, 15자 이내
+    3. 리뷰에 언급되지 않은 카테고리는 `null`로 반환
+    4. `signatureMenu`의 tag는 리뷰 코멘트에 substring으로 존재해야 함
   - 3회 재시도 (1s→2s→4s 백오프, 429/5xx만)
   - 실패 시 `BusinessException(CLAUDE_API_ERROR)`
 - `client/FakeClaudeClient.java` — 테스트용
@@ -154,17 +170,19 @@ CREATE INDEX idx_summary_generated_at ON restaurant_review_summary (generated_at
 
 **신규:** `service/SummaryValidator.java`
 
-5종 검증 (사용자 스펙 그대로):
+4종 검증 (카테고리 기반):
 
-| # | 검증 | 실패 시 |
-|---|------|---------|
-| 1 | `evidenceReviewIds` 모두 입력 리뷰에 존재 | 항목 제거 |
-| 2 | `mentionCount == len(evidenceReviewIds)` | 항목 제거 |
-| 3 | positive_points 근거 리뷰 평점 ≥ 3.5 | 항목 제거 |
-| 4 | negative_points 근거 리뷰 평점 < 3.5 | 항목 제거 |
-| 5 | signature_menu 이름이 최소 1건 리뷰에 substring 존재 | 항목 제거 |
+| # | 검증 | 대상 카테고리 | 실패 시 |
+|---|------|---------------|---------|
+| 1 | `evidenceReviewIds` 모두 입력 리뷰에 존재 | 전체 9개 | 해당 태그 제거 |
+| 2 | `evidenceReviewIds`가 비어있지 않음 | 전체 9개 | 해당 태그 제거 |
+| 3 | `signatureMenu`의 tag가 최소 1건 리뷰 코멘트에 substring 존재 | signatureMenu만 | 해당 태그 제거 |
+| 4 | `tag`가 null이 아니고 공백이 아님 | 전체 9개 | 해당 태그 제거 |
 
-결과: passed (전체 통과) / degraded (일부 제거, 1개+ 생존) / failed (유효 0개)
+- `mentionCount` 검증 제거 — 필드 자체가 없으므로 불필요
+- positive/negative 평점 검증 제거 — 카테고리가 긍정/부정으로 나뉘지 않으므로 불필요
+- 결과: passed (전체 통과) / degraded (일부 제거, 1개+ 생존) / failed (유효 0개)
+- 카테고리 내 모든 태그가 제거되면 해당 카테고리를 `null`로 설정
 
 ### 단계 6: 요약 생성 서비스
 
@@ -246,8 +264,11 @@ export function fetchReviewSummary(restaurantId) {
 
 ### `frontend/src/components/review/ReviewSummaryCard.vue` — 신규
 - `restaurantId` prop → onMounted에서 API 호출
-- `status === "available"`: 요약 카드 렌더링
-  - overall_tone 배지, positive/negative 포인트 목록, signature_menu 목록
+- `status === "available"`: 카테고리별 태그 카드 렌더링
+  - 9개 카테고리를 순회하며 `null`이 아닌 항목만 표시
+  - 각 카테고리: 라벨 + 태그 칩 목록 (evidenceReviewIds.length로 "N명 언급" 표시)
+  - 카테고리 표시 순서: 대표메뉴 → 맛 → 분위기 → 서비스 → 가성비 → 양 → 방문목적 → 동반인 → 주차
+  - 카테고리 라벨 매핑: `signatureMenu` → "대표 메뉴", `taste` → "맛", `atmosphere` → "분위기" 등
   - "AI가 생성한 요약입니다" 면책 문구
 - `status === "insufficient"`: "리뷰가 부족하여 요약을 제공할 수 없습니다" 문구
 - 기존 `.card` CSS 클래스 + `tokens.css` 디자인 토큰 활용
@@ -306,10 +327,11 @@ export function fetchReviewSummary(restaurantId) {
 
 ### 테스트 케이스
 - **해시**: 리뷰 추가/수정/삭제 시 변화 감지, 동일 리뷰 → 동일 해시
-- **검증기**: 5종 검증 각각 통과/실패, passed/degraded/failed 분류
+- **검증기**: 4종 검증 각각 통과/실패, passed/degraded/failed 분류
+  - evidenceReviewIds 존재 여부, 비어있지 않음, signatureMenu substring 존재, tag 비공백
 - **조회 API**: passed → available, degraded/failed/미생성 → insufficient
 - **버전 변경**: model/prompt 버전 불일치 → 재생성 후보 편입
-- **FakeClaudeClient**: 테스트 프로파일에서 자동 주입, 결정론적 결과
+- **FakeClaudeClient**: 테스트 프로파일에서 자동 주입, 9개 카테고리 결정론적 결과
 
 ---
 
