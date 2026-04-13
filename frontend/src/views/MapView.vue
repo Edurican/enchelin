@@ -103,6 +103,7 @@ function scheduleBoundsLoad(sw, ne) {
 function onBoundsChanged({ center: c, sw, ne }) {
   currentCenter = c
   currentBounds = { sw, ne }
+  restaurantStore.saveCenter({ lat: c.y, lng: c.x })
   // 검색 결과가 열려있으면 bounds 재조회 하지 않음
   if (!showSearchResults.value) {
     scheduleBoundsLoad(sw, ne)
@@ -157,6 +158,14 @@ function focusSearch() {
 }
 
 onMounted(() => {
+  // 이전에 지도를 본 적 있으면 (뒤로가기 등) 저장된 위치 복원
+  if (restaurantStore.mapCenter) {
+    center.value = { ...restaurantStore.mapCenter }
+    locating.value = false
+    return
+  }
+
+  // 최초 접속: GPS 위치로 초기화
   if ('geolocation' in navigator) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
