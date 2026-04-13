@@ -9,6 +9,8 @@ export const useRestaurantStore = defineStore('restaurant', () => {
   const searchResults = ref([])
   // 선택된 식당 (마커 클릭 등)
   const selected = ref(null)
+  // 마지막 지도 center (뒤로가기 시 위치 복원용)
+  const mapCenter = ref(null)
   const loading = ref(false)
   const searchLoading = ref(false)
   const error = ref(null)
@@ -63,10 +65,15 @@ export const useRestaurantStore = defineStore('restaurant', () => {
     selected.value = null
   }
 
+  function saveCenter(center) {
+    mapCenter.value = { ...center }
+  }
+
   return {
     mapRestaurants,
     searchResults,
     selected,
+    mapCenter,
     loading,
     searchLoading,
     error,
@@ -76,5 +83,6 @@ export const useRestaurantStore = defineStore('restaurant', () => {
     clearSearch,
     selectRestaurant,
     clearSelected,
+    saveCenter,
   }
 })

@@ -37,3 +37,11 @@ export function searchRestaurants(query, center = null) {
 export function fetchRestaurantDetail(restaurantId) {
   return client.get(`/restaurants/${restaurantId}`)
 }
+
+/**
+ * 식당 AI 리뷰 요약 조회
+ * @param {number} restaurantId
+ */
+export function fetchReviewSummary(restaurantId) {
+  return client.get(`/restaurants/${restaurantId}/review-summary`)
+}
