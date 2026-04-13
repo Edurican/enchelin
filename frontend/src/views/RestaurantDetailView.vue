@@ -29,6 +29,8 @@
         </div>
       </section>
 
+      <ReviewSummaryCard :restaurant-id="restaurant.id" />
+
       <section class="reviews-section">
         <div class="reviews-header">
           <h2 class="reviews-title">리뷰</h2>
@@ -87,6 +89,7 @@ import ErrorMessage from '@/components/common/ErrorMessage.vue'
 import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
 import ReviewList from '@/components/review/ReviewList.vue'
 import StarRating from '@/components/review/StarRating.vue'
+import ReviewSummaryCard from '@/components/review/ReviewSummaryCard.vue'
 
 const route = useRoute()
 const router = useRouter()
