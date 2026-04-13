@@ -3,8 +3,10 @@ package com.edurican.enchelinbe.controller;
 import com.edurican.enchelinbe.common.response.ApiResponse;
 import com.edurican.enchelinbe.dto.RestaurantResponse;
 import com.edurican.enchelinbe.dto.RestaurantSearchResponse;
+import com.edurican.enchelinbe.dto.ReviewSummaryResponse;
 import com.edurican.enchelinbe.service.Restaurant;
 import com.edurican.enchelinbe.service.RestaurantService;
+import com.edurican.enchelinbe.service.ReviewSummaryService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -21,6 +23,7 @@ import java.util.List;
 public class RestaurantController {
 
     private final RestaurantService restaurantService;
+    private final ReviewSummaryService reviewSummaryService;
 
     // ---------------------------------------------------------------------------
     // GET /restaurants (bounds - 리뷰 있는 식당만)
@@ -57,6 +60,14 @@ public class RestaurantController {
     ) {
         List<RestaurantSearchResponse> results = restaurantService.searchByKeyword(query, x, y, page);
         return ApiResponse.success(results);
+    }
+
+    // ---------------------------------------------------------------------------
+    // GET /restaurants/{id}/review-summary
+    // ---------------------------------------------------------------------------
+    @GetMapping("/restaurants/{id}/review-summary")
+    public ApiResponse<ReviewSummaryResponse> getReviewSummary(@PathVariable Long id) {
+        return ApiResponse.success(reviewSummaryService.getSummaryForRestaurant(id));
     }
 
     // ---------------------------------------------------------------------------

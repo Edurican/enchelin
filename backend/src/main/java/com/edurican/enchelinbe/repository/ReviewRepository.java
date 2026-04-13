@@ -40,6 +40,16 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             """)
     List<RestaurantReviewStats> findStatsByRestaurantIds(@Param("restaurantIds") List<Long> restaurantIds);
 
+    @Query("""
+            SELECT r FROM Review r
+            WHERE r.restaurantId = :restaurantId
+              AND r.status = com.edurican.enchelinbe.enums.EntityStatus.ACTIVE
+              AND LENGTH(r.comment) >= 5
+            ORDER BY r.createdAt DESC
+            LIMIT 50
+            """)
+    List<Review> findActiveReviewsByRestaurantId(@Param("restaurantId") Long restaurantId);
+
     interface RestaurantReviewStats {
         Long getRestaurantId();
         Long getCnt();
