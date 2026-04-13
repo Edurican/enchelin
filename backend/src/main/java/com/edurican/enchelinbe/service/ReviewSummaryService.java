@@ -45,6 +45,14 @@ public class ReviewSummaryService {
     // @Transactional 없음 — LLM 호출 중 DB 커넥션을 점유하지 않도록 의도적으로 제외.
     // 각 리포지토리 메서드는 SimpleJpaRepository의 @Transactional로 자체 트랜잭션을 가짐.
     public void generateSummaryIfStale(Long restaurantId) {
+        generateSummary(restaurantId, false);
+    }
+
+    public void forceGenerateSummary(Long restaurantId) {
+        generateSummary(restaurantId, true);
+    }
+
+    private void generateSummary(Long restaurantId, boolean force) {
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
@@ -56,7 +64,7 @@ public class ReviewSummaryService {
 
         String currentHash = hashCalculator.compute(reviews);
 
-        if (!isStale(restaurantId, currentHash)) {
+        if (!force && !isStale(restaurantId, currentHash)) {
             log.debug("식당 {} 요약 최신 상태 — 스킵", restaurantId);
             return;
         }
