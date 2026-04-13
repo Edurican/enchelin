@@ -10,10 +10,7 @@ import com.edurican.enchelinbe.service.ReviewSummaryService;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -68,6 +65,15 @@ public class RestaurantController {
     @GetMapping("/restaurants/{id}/review-summary")
     public ApiResponse<ReviewSummaryResponse> getReviewSummary(@PathVariable Long id) {
         return ApiResponse.success(reviewSummaryService.getSummaryForRestaurant(id));
+    }
+
+    // ---------------------------------------------------------------------------
+    // POST /restaurants/{id}/review-summary — 강제 AI 요약 생성
+    // ---------------------------------------------------------------------------
+    @PostMapping("/restaurants/{id}/review-summary")
+    public ApiResponse<Void> generateReviewSummary(@PathVariable Long id) {
+        reviewSummaryService.forceGenerateSummary(id);
+        return ApiResponse.success();
     }
 
     // ---------------------------------------------------------------------------
