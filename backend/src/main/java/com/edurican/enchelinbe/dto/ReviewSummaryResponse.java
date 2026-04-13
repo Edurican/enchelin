@@ -21,4 +21,9 @@ public record ReviewSummaryResponse(
         return new ReviewSummaryResponse("insufficient", null, null, null,
                 "리뷰가 부족하여 AI 요약을 제공할 수 없습니다.");
     }
+
+    public static ReviewSummaryResponse unavailable() {
+        return new ReviewSummaryResponse("unavailable", null, null, null,
+                "AI 요약을 제공할 수 없습니다.");
+    }
 }

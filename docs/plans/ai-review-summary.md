@@ -57,7 +57,7 @@ BE API 응답 status에 따라 요약 내용 또는 "리뷰 부족" 문구 표�
 
 ## API 연동
 - `GET /restaurants/{id}/review-summary`
-- 응답: `{ status: "available"|"insufficient", summary, generated_at, source_review_count }`
+- 응답: `{ status: "available"|"insufficient"|"unavailable", summary, generated_at, source_review_count, message }`
 EOF
 )"
 ```
@@ -128,14 +128,15 @@ CREATE INDEX idx_summary_generated_at ON restaurant_review_summary (generated_at
     - `service` — 서비스 (친절한 직원, 빠른 응대 등)
     - `costPerformance` — 가성비/가격대 (가성비 좋은 편 등)
     - `portion` — 양/포션 (양이 넉넉한 편 등)
-  - 각 항목 구조: `TagItem` record — `tag` (String) + `evidenceReviewIds` (List<Long>)
+  - 각 카테고리 타입: `List<TagItem>` (nullable) — 카테고리당 복수 태그 가능
+  - `TagItem` record — `tag` (String) + `evidenceReviewIds` (List<Long>)
   - `mentionCount` 없음 — `evidenceReviewIds.size()`로 대체
 - `repository/RestaurantReviewSummaryRepository.java`
 
 **수정 파일:**
-- `repository/ReviewRepository.java` — 쿼리 2개 추가:
+- `repository/ReviewRepository.java` — 쿼리 1개 추가:
   - `findActiveReviewsByRestaurantId(restaurantId)` — status=ACTIVE, LENGTH(comment)>=5, 최신순 50건
-  - `findActiveReviewIdAndUpdatedAt(restaurantId)` — 해시 계산용 (id, updatedAt) 투플
+  - ~~`findActiveReviewIdAndUpdatedAt`~~ — `SourceHashCalculator`가 `Review` 엔티티를 직접 받으므로 불필요, 생략
 
 ### 단계 3: 해시 유틸
 
@@ -170,7 +171,7 @@ CREATE INDEX idx_summary_generated_at ON restaurant_review_summary (generated_at
 
 **신규:** `service/SummaryValidator.java`
 
-4종 검증 (카테고리 기반):
+5종 검증 (카테고리 기반):
 
 | # | 검증 | 대상 카테고리 | 실패 시 |
 |---|------|---------------|---------|
@@ -178,6 +179,7 @@ CREATE INDEX idx_summary_generated_at ON restaurant_review_summary (generated_at
 | 2 | `evidenceReviewIds`가 비어있지 않음 | 전체 9개 | 해당 태그 제거 |
 | 3 | `signatureMenu`의 tag가 최소 1건 리뷰 코멘트에 substring 존재 | signatureMenu만 | 해당 태그 제거 |
 | 4 | `tag`가 null이 아니고 공백이 아님 | 전체 9개 | 해당 태그 제거 |
+| 5 | `tag` 길이 15자 이내 | 전체 9개 | 해당 태그 제거 |
 
 - `mentionCount` 검증 제거 — 필드 자체가 없으므로 불필요
 - positive/negative 평점 검증 제거 — 카테고리가 긍정/부정으로 나뉘지 않으므로 불필요
@@ -190,14 +192,14 @@ CREATE INDEX idx_summary_generated_at ON restaurant_review_summary (generated_at
 - `generateSummaryIfStale(Long restaurantId)` — 오케스트레이션
   - 리뷰 로드 → 3개 미만 스킵 → 해시 비교 → LLM 호출 → 검증 → 저장
 - `getSummaryForRestaurant(Long restaurantId)` — 조회 로직
-  - passed만 available, 나머지 모두 insufficient
+  - passed → available, degraded/failed → unavailable, 미생성 → insufficient
 - `computeSourceHash(...)` 위임
 
 ### 단계 7: 조회 API
 
 **신규:** `dto/ReviewSummaryResponse.java` — record
 - `status` ("available" | "insufficient"), `summary` (nullable), `generatedAt` (nullable), `sourceReviewCount` (nullable), `message` (nullable)
-- `static available(...)` / `static insufficient()` 팩토리 메서드
+- `static available(...)` / `static insufficient()` / `static unavailable()` 팩토리 메서드
 
 **수정:** `controller/RestaurantController.java`
 - `ReviewSummaryService` 주입 추가
@@ -321,15 +323,15 @@ export function fetchReviewSummary(restaurantId) {
 
 ### 테스트 파일
 1. `api/summary/SourceHashTest.java` — 해시 계산 검증
-2. `api/summary/SummaryValidatorTest.java` — 5종 검증 각각 + 분류
+2. `api/summary/SummaryValidatorTest.java` — 5종 검증 각각 + passed/degraded/failed 분류
 3. `api/restaurant/reviewSummary/GET_specs.java` — 조회 API 4케이스
 4. `api/fixture/ReviewSummaryFixture.java` + `FixtureConfiguration` 등록
 
 ### 테스트 케이스
 - **해시**: 리뷰 추가/수정/삭제 시 변화 감지, 동일 리뷰 → 동일 해시
-- **검증기**: 4종 검증 각각 통과/실패, passed/degraded/failed 분류
-  - evidenceReviewIds 존재 여부, 비어있지 않음, signatureMenu substring 존재, tag 비공백
-- **조회 API**: passed → available, degraded/failed/미생성 → insufficient
+- **검증기**: 5종 검증 각각 통과/실패, passed/degraded/failed 분류
+  - evidenceReviewIds 존재 여부, 비어있지 않음, signatureMenu substring 존재, tag 비공백, tag 길이 15자 이내
+- **조회 API**: passed → available, degraded/failed → unavailable, 미생성 → insufficient
 - **버전 변경**: model/prompt 버전 불일치 → 재생성 후보 편입
 - **FakeClaudeClient**: 테스트 프로파일에서 자동 주입, 9개 카테고리 결정론적 결과
 

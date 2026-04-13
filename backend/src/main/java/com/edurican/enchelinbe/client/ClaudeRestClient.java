@@ -5,11 +5,11 @@ import com.edurican.enchelinbe.common.exception.ErrorCode;
 import com.edurican.enchelinbe.service.SummaryJson;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -25,7 +25,6 @@ public class ClaudeRestClient implements ClaudeClient {
 
     private static final String ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
     private static final String ANTHROPIC_VERSION = "2023-06-01";
-    private static final String MODEL = "claude-sonnet-4-6";
     private static final int MAX_TOKENS = 2048;
     private static final double TEMPERATURE = 0.2;
 
@@ -64,10 +63,16 @@ public class ClaudeRestClient implements ClaudeClient {
             """;
 
     private final String apiKey;
+    private final String modelVersion;
     private final RestClient restClient;
+    private final ObjectMapper objectMapper;
 
-    public ClaudeRestClient(@Value("${anthropic.api-key}") String apiKey) {
+    public ClaudeRestClient(@Value("${anthropic.api-key}") String apiKey,
+                            @Value("${summary.model-version}") String modelVersion,
+                            ObjectMapper objectMapper) {
         this.apiKey = apiKey;
+        this.modelVersion = modelVersion;
+        this.objectMapper = objectMapper;
         this.restClient = RestClient.create();
     }
 
@@ -90,14 +95,16 @@ public class ClaudeRestClient implements ClaudeClient {
             } catch (RestClientResponseException e) {
                 int status = e.getStatusCode().value();
                 if (status == 429 || status >= 500) {
-                    log.warn("Claude API 재시도 {}/3 — status={}", attempt + 1, status);
+                    log.warn("Claude API {}번째 시도 실패(재시도 예정) — status={}", attempt + 1, status);
                     lastException = e;
                 } else {
                     log.error("Claude API 호출 실패 — status={}", status, e);
                     throw new BusinessException(ErrorCode.CLAUDE_API_ERROR);
                 }
+            } catch (BusinessException e) {
+                throw e;
             } catch (Exception e) {
-                log.error("Claude API 호출 중 예외", e);
+                log.warn("Claude API {}번째 시도 중 예외(재시도 예정)", attempt + 1, e);
                 lastException = e;
             }
         }
@@ -107,7 +114,7 @@ public class ClaudeRestClient implements ClaudeClient {
 
     private SummaryJson callApi(String userMessage) {
         MessageRequest request = new MessageRequest(
-                MODEL, MAX_TOKENS, TEMPERATURE, SYSTEM_PROMPT,
+                modelVersion, MAX_TOKENS, TEMPERATURE, SYSTEM_PROMPT,
                 List.of(new Message("user", userMessage))
         );
 
@@ -126,8 +133,7 @@ public class ClaudeRestClient implements ClaudeClient {
 
         String json = response.content().get(0).text();
         try {
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            return mapper.readValue(json, SummaryJson.class);
+            return objectMapper.readValue(json, SummaryJson.class);
         } catch (Exception e) {
             log.error("Claude 응답 JSON 파싱 실패: {}", json, e);
             throw new BusinessException(ErrorCode.CLAUDE_API_ERROR);
@@ -136,8 +142,8 @@ public class ClaudeRestClient implements ClaudeClient {
 
     private String buildUserMessage(String restaurantName, String category, List<ReviewForSummary> reviews) {
         String reviewsText = reviews.stream()
-                .map(r -> "- id=%d rating=%.1f comment=\"%s\"".formatted(
-                        r.reviewId(), r.rating().doubleValue(), r.comment()))
+                .map(r -> "- id=%d rating=%d comment=\"%s\"".formatted(
+                        r.reviewId(), r.rating(), r.comment()))
                 .collect(Collectors.joining("\n"));
 
         return """

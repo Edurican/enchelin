@@ -69,4 +69,23 @@ public class RestaurantReviewSummary {
         this.generatedAt = generatedAt;
         this.updatedAt = generatedAt;
     }
+
+    public void update(
+            SummaryJson summaryJson, String sourceHash, int sourceReviewCount,
+            Long[] sourceReviewIds, String modelVersion, String promptVersion,
+            String validationStatus, OffsetDateTime generatedAt) {
+        this.summaryJson = summaryJson;
+        this.sourceHash = sourceHash;
+        this.sourceReviewCount = sourceReviewCount;
+        this.sourceReviewIds = sourceReviewIds;
+        this.modelVersion = modelVersion;
+        this.promptVersion = promptVersion;
+        this.validationStatus = validationStatus;
+        this.generatedAt = generatedAt;
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        this.updatedAt = OffsetDateTime.now();
+    }
 }

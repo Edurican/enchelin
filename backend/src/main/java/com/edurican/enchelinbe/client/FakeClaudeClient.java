@@ -32,7 +32,7 @@ public class FakeClaudeClient implements ClaudeClient {
                 .toList();
 
         List<Long> highRatedIds = reviews.stream()
-                .filter(r -> r.rating() >= 4)
+                .filter(r -> r.rating() != null && r.rating() >= 4)
                 .map(ReviewForSummary::reviewId)
                 .limit(2)
                 .toList();

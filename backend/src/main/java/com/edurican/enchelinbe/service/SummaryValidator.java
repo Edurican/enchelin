@@ -64,7 +64,7 @@ public class SummaryValidator {
     }
 
     private boolean isTagValid(String tag) {
-        return tag != null && !tag.isBlank();
+        return tag != null && !tag.isBlank() && tag.length() <= 15;
     }
 
     private boolean isEvidenceValid(List<Long> ids, Set<Long> validIds) {

@@ -17,6 +17,12 @@ public interface RestaurantReviewSummaryRepository extends JpaRepository<Restaur
             WHERE s.restaurant_id IS NULL
                OR s.model_version != :modelVersion
                OR s.prompt_version != :promptVersion
+               OR EXISTS (
+                   SELECT 1 FROM reviews rv
+                   WHERE rv.restaurant_id = r.id
+                     AND rv.status = 'ACTIVE'
+                     AND rv.updated_at > s.generated_at
+               )
             ORDER BY s.generated_at ASC NULLS FIRST
             LIMIT 10
             """, nativeQuery = true)
