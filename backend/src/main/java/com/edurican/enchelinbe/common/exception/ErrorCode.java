@@ -21,6 +21,8 @@ public enum ErrorCode {
 
     KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "K001", "Kakao API 호출 중 오류가 발생했습니다."),
 
+    CLAUDE_API_ERROR(HttpStatus.BAD_GATEWAY, "AI001", "AI 요약 생성 중 오류가 발생했습니다."),
+
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "C002", "서버 오류입니다.");
 
     private final HttpStatus status;

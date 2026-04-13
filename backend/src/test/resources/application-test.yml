@@ -31,3 +31,12 @@ github:
 
 app:
   frontend-url: http://localhost:5173
+
+anthropic:
+  api-key: test-key
+
+summary:
+  scheduler:
+    enabled: false
+  model-version: claude-sonnet-4-6
+  prompt-version: v1.0.0
