@@ -1,6 +1,3 @@
--- PostGIS extension
-CREATE EXTENSION IF NOT EXISTS postgis;
-
 -- users
 CREATE TABLE users (
     id         BIGSERIAL PRIMARY KEY,
@@ -21,12 +18,10 @@ CREATE TABLE restaurants (
     place_url    VARCHAR(500) NOT NULL,
     address      VARCHAR(500) NOT NULL,
     x            DOUBLE PRECISION NOT NULL,
-    y            DOUBLE PRECISION NOT NULL,
-    location     GEOMETRY(Point, 4326)  -- nullable; populated async for future spatial queries
+    y            DOUBLE PRECISION NOT NULL
 );
 
 CREATE INDEX idx_restaurant_x_y ON restaurants (x, y);
-CREATE INDEX idx_restaurant_location ON restaurants USING GIST (location);
 
 -- reviews
 CREATE TABLE reviews (
@@ -48,3 +43,19 @@ CREATE INDEX idx_review_restaurant_latest ON reviews (restaurant_id, created_at)
 CREATE UNIQUE INDEX uq_review_user_restaurant_visit_active
     ON reviews (user_id, restaurant_id, visit_number)
     WHERE status = 'ACTIVE';
+
+-- restaurant_review_summary
+CREATE TABLE restaurant_review_summary (
+    restaurant_id       BIGINT PRIMARY KEY REFERENCES restaurants (id),
+    summary_json        JSONB        NOT NULL,
+    source_hash         VARCHAR(64)  NOT NULL,
+    source_review_count INTEGER      NOT NULL,
+    source_review_ids   BIGINT[]     NOT NULL,
+    model_version       VARCHAR(50)  NOT NULL,
+    prompt_version      VARCHAR(20)  NOT NULL,
+    validation_status   VARCHAR(20)  NOT NULL DEFAULT 'pending',
+    generated_at        TIMESTAMPTZ  NOT NULL,
+    updated_at          TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_summary_generated_at ON restaurant_review_summary (generated_at);
