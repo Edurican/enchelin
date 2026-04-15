@@ -17,6 +17,8 @@ public enum ErrorCode {
 
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "RV001", "리뷰가 존재하지 않습니다."),
 
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "U001", "사용자를 찾을 수 없습니다."),
+
     TOO_MANY_REQUESTS(HttpStatus.TOO_MANY_REQUESTS, "C003", "요청이 너무 많습니다."),
 
     KAKAO_API_ERROR(HttpStatus.BAD_GATEWAY, "K001", "Kakao API 호출 중 오류가 발생했습니다."),

@@ -22,6 +22,30 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     Slice<Review> findByUserIdAndStatusOrderByCreatedAtDesc(Long userId, EntityStatus status, Pageable pageable);
 
+    Slice<Review> findByUserIdAndStatusOrderByRatingDescCreatedAtDesc(Long userId, EntityStatus status, Pageable pageable);
+
+    @Query("""
+            SELECT r FROM Review r
+            JOIN Restaurant rest ON r.restaurantId = rest.id
+            WHERE r.userId = :userId
+              AND r.status = com.edurican.enchelinbe.enums.EntityStatus.ACTIVE
+            ORDER BY rest.name ASC, r.createdAt DESC
+            """)
+    Slice<Review> findByUserIdActiveOrderByRestaurantName(@Param("userId") Long userId, Pageable pageable);
+
+    @Query("""
+            SELECT COUNT(r) AS reviewCount, COALESCE(AVG(r.rating), 0) AS averageRating
+            FROM Review r
+            WHERE r.userId = :userId
+              AND r.status = com.edurican.enchelinbe.enums.EntityStatus.ACTIVE
+            """)
+    UserStatsProjection findUserStats(@Param("userId") Long userId);
+
+    interface UserStatsProjection {
+        Long getReviewCount();
+        Double getAverageRating();
+    }
+
     @Query("""
             SELECT COALESCE(MAX(r.visitNumber), 0)
             FROM Review r

@@ -7,6 +7,7 @@ import com.edurican.enchelinbe.common.response.ApiResponse;
 import com.edurican.enchelinbe.dto.CreateReviewRequest;
 import com.edurican.enchelinbe.dto.ReviewResponse;
 import com.edurican.enchelinbe.dto.UpdateReviewRequest;
+import com.edurican.enchelinbe.dto.UserStatsResponse;
 import com.edurican.enchelinbe.service.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,10 +39,16 @@ public class ReviewController {
     @GetMapping("/users/{userId}/reviews")
     public ApiResponse<Page<ReviewResponse>> getUserReview(
             @PathVariable Long userId,
-            @ModelAttribute OffsetLimit offsetLimit
+            @ModelAttribute OffsetLimit offsetLimit,
+            @RequestParam(value = "sort", defaultValue = "latest") String sort
     ) {
-        Page<ReviewResponse> response = reviewService.getUserReview(userId, offsetLimit);
+        Page<ReviewResponse> response = reviewService.getUserReview(userId, offsetLimit, sort);
         return ApiResponse.success(response);
+    }
+
+    @GetMapping("/users/{userId}/stats")
+    public ApiResponse<UserStatsResponse> getUserStats(@PathVariable Long userId) {
+        return ApiResponse.success(reviewService.getUserStats(userId));
     }
 
     @PutMapping("/reviews/{reviewId}")
