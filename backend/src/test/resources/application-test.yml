@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:tc:postgis:16-3.4:///enchelin-test
+    url: jdbc:tc:postgresql:16:///enchelin-test
     username: test
     password: test
     driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
