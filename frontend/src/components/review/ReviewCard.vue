@@ -7,6 +7,11 @@
       </div>
       <StarRating :rating="review.rating" size="sm" />
     </div>
+    <router-link
+      v-if="review.restaurantName"
+      :to="{ name: 'RestaurantDetail', params: { id: review.restaurantId } }"
+      class="review-restaurant"
+    >{{ review.restaurantName }}</router-link>
     <p class="review-comment">{{ review.comment }}</p>
     <div class="review-footer">
       <time class="review-date">{{ formatDate(review.createdAt) }}</time>
@@ -73,6 +78,17 @@ function formatDate(dateStr) {
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+.review-restaurant {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.review-restaurant:hover {
+  text-decoration: underline;
 }
 
 .review-comment {

@@ -134,7 +134,7 @@ const writeReviewRoute = computed(() => {
 })
 
 function isOwner(review) {
-  return auth.user && review.userName === auth.user.nickname
+  return auth.user && String(review.userId) === String(auth.user.id)
 }
 
 async function loadReviews() {
