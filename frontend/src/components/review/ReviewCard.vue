@@ -2,7 +2,12 @@
   <div class="review-card card">
     <div class="review-header">
       <div class="review-header-left">
-        <span class="review-author">{{ review.userName }}</span>
+        <router-link
+          v-if="review.userId"
+          :to="{ name: 'UserProfile', params: { userId: review.userId } }"
+          class="review-author"
+        >{{ review.userName }}</router-link>
+        <span v-else class="review-author">{{ review.userName }}</span>
         <span v-if="review.visitNumber" class="visit-badge">{{ review.visitNumber }}번째 방문</span>
       </div>
       <StarRating :rating="review.rating" size="sm" />
@@ -65,6 +70,12 @@ function formatDate(dateStr) {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
+  color: inherit;
+  text-decoration: none;
+}
+
+.review-author:hover {
+  text-decoration: underline;
 }
 
 .visit-badge {

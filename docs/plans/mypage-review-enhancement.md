@@ -54,6 +54,14 @@ GitHub OAuth로 로그인 시 nickname/avatarUrl을 받아오지만 JWT에 포�
 - `GET /users/{userId}/reviews`에 `sort` 파라미터 추가 (기본값 "latest")
 - `GET /users/{userId}/stats` 엔드포인트 추가
 
+### 2-5. 유저 프로필 조회 API
+**새 파일**: `backend/.../dto/UserProfileResponse.java`
+- `Long id`, `String nickname`, `String avatarUrl`, `String htmlUrl`
+
+**새 파일**: `backend/.../controller/UserController.java`
+- `GET /users/{userId}` — 공개 프로필 조회 (인증 불필요)
+- `UserRepository.findById()` → `UserProfileResponse` 반환
+
 ---
 
 ## Phase 3: 프론트엔드 (Phase 1~2 의존)
@@ -63,18 +71,35 @@ GitHub OAuth로 로그인 시 nickname/avatarUrl을 받아오지만 JWT에 포�
 - `fetchUserReviews`에 `sort` 파라미터 추가
 - `fetchUserStats(userId)` 추가
 
+**파일**: `frontend/src/api/user.js` (새 파일)
+- `fetchUserProfile(userId)` — `GET /users/{userId}` 호출
+
 ### 3-2. ReviewCard 수정
 **파일**: `frontend/src/components/review/ReviewCard.vue`
 - 헤더에 음식점 이름 표시 (`review.restaurantName` → RestaurantDetail 링크)
+- 작성자 이름 클릭 시 유저 프로필 페이지로 이동 (`/users/:userId` 링크)
 
-### 3-3. MyPageView 수정
+### 3-3. MyPageView → 공통 프로필 레이아웃 재사용
 **파일**: `frontend/src/views/MyPageView.vue`
 - **프로필 영역**: avatar + nickname 표시 (JWT 수정으로 자동 해결)
 - **통계 카드 추가**: 리뷰 개수 + 평균 별점 (fetchUserStats 호출)
 - **정렬 드롭다운 추가**: 최신순/이름순/평점순 (RestaurantDetailView 패턴 재사용)
 - **레이아웃 변경**: 데스크톱 2컬럼 그리드 → 단일 컬럼 (CSS `grid-template-columns: repeat(2, 1fr)` 미디어쿼리 제거)
+- `isMyPage` 플래그로 마이페이지 전용 요소(로그아웃 버튼, 수정/삭제) 조건부 렌더링
 
-### 3-4. RestaurantDetailView 수정
+### 3-4. UserProfileView (타인 프로필 페이지)
+**새 파일**: `frontend/src/views/UserProfileView.vue`
+- MyPageView와 동일한 레이아웃 (프로필 카드 + 통계 + 리뷰 목록 + 정렬)
+- 데이터 소스: `fetchUserProfile(userId)` + `fetchUserStats(userId)` + `fetchUserReviews(userId)`
+- **차이점**: 로그아웃 버튼 없음, 리뷰 수정/삭제 불가 (`isOwnerFn` → `() => false`)
+- 본인 프로필 접근 시(`auth.user.id === userId`) → `/mypage`로 리다이렉트
+
+### 3-5. 라우터 등록
+**파일**: `frontend/src/router/index.js`
+- `{ path: '/users/:userId', name: 'UserProfile', component: UserProfileView, meta: { requiresAuth: false } }` 추가
+- 비로그인 사용자도 조회 가능 (`requiresAuth: false`)
+
+### 3-6. RestaurantDetailView 수정
 **파일**: `frontend/src/views/RestaurantDetailView.vue`
 - 소유권 체크 변경: `review.userName === auth.user.nickname` → `String(review.userId) === String(auth.user.id)`
 
@@ -88,12 +113,17 @@ GitHub OAuth로 로그인 시 nickname/avatarUrl을 받아오지만 JWT에 포�
 | `backend/.../auth/AuthService.java` | createToken 호출 변경 |
 | `backend/.../common/exception/ErrorCode.java` | USER_NOT_FOUND 추가 |
 | `backend/.../dto/UserStatsResponse.java` | **새 파일** — 사용자 통계 DTO |
+| `backend/.../dto/UserProfileResponse.java` | **새 파일** — 유저 프로필 DTO |
+| `backend/.../controller/UserController.java` | **새 파일** — 유저 프로필 조회 API |
 | `backend/.../repository/ReviewRepository.java` | 정렬 쿼리 + 통계 쿼리 추가 |
 | `backend/.../service/ReviewService.java` | userName 배치 조회, 정렬, 통계 |
 | `backend/.../controller/ReviewController.java` | 통계 엔드포인트, sort 파라미터 |
 | `frontend/src/api/review.js` | sort 파라미터, 통계 API 추가 |
-| `frontend/src/components/review/ReviewCard.vue` | 음식점 이름 표시 |
-| `frontend/src/views/MyPageView.vue` | 통계, 정렬, 단일컬럼 |
+| `frontend/src/api/user.js` | **새 파일** — fetchUserProfile API |
+| `frontend/src/components/review/ReviewCard.vue` | 음식점 이름 + 작성자 프로필 링크 |
+| `frontend/src/views/MyPageView.vue` | 통계, 정렬, 단일컬럼, isMyPage 조건부 렌더링 |
+| `frontend/src/views/UserProfileView.vue` | **새 파일** — 타인 프로필 페이지 |
+| `frontend/src/router/index.js` | `/users/:userId` 라우트 추가 |
 | `frontend/src/views/RestaurantDetailView.vue` | userId 소유권 체크 |
 
 ## 재사용 패턴
@@ -110,3 +140,6 @@ GitHub OAuth로 로그인 시 nickname/avatarUrl을 받아오지만 JWT에 포�
 5. 마이페이지: 최신순/이름순/평점순 정렬 동작 확인
 6. 마이페이지: 리뷰 단일 컬럼 레이아웃 확인
 7. 식당 상세: 리뷰 작성자 이름 표시 + 본인 리뷰 수정/삭제 버튼 확인
+8. 리뷰 작성자 이름 클릭 → `/users/:userId` 유저 프로필 페이지 이동 확인
+9. 유저 프로필: 프로필 카드 + 통계 + 리뷰 목록 표시, 수정/삭제 버튼 없음 확인
+10. 유저 프로필: 본인 userId 접근 시 `/mypage`로 리다이렉트 확인

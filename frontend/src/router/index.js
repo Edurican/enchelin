@@ -47,6 +47,13 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/users/:userId',
+    name: 'UserProfile',
+    component: () => import('@/views/UserProfileView.vue'),
+    meta: { requiresAuth: false },
+    props: true,
+  },
+  {
     path: '/',
     redirect: '/map',
   },
