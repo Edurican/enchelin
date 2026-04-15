@@ -30,10 +30,14 @@ export function fetchRestaurantReviews(restaurantId, offset = 0, limit = 10, sor
   })
 }
 
-export function fetchUserReviews(userId, offset = 0, limit = 10) {
+export function fetchUserReviews(userId, offset = 0, limit = 10, sort = 'latest') {
   return client.get(`/users/${userId}/reviews`, {
-    params: { offset, limit },
+    params: { offset, limit, sort },
   })
+}
+
+export function fetchUserStats(userId) {
+  return client.get(`/users/${userId}/stats`)
 }
 
 export function updateReview(reviewId, rating, comment) {
