@@ -2,7 +2,7 @@ spring:
  application:
   name: enchelin
  profiles:
-   active: local
+   active: ${SPRING_PROFILES_ACTIVE:local}
 
 jwt:
   secret: ${JWT_SECRET:default-dev-secret-key-that-should-be-changed-in-production-env}

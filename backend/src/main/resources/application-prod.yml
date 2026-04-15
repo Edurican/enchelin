@@ -1,3 +1,7 @@
+server:
+  port: ${PORT:8080}
+  forward-headers-strategy: framework
+
 spring:
   datasource:
     url: ${DB_URL}
@@ -25,3 +29,11 @@ anthropic:
 summary:
   scheduler:
     enabled: true
+
+github:
+  client-id: ${GITHUB_CLIENT_ID}
+  client-secret: ${GITHUB_CLIENT_SECRET}
+  redirect-uri: ${APP_BASE_URL}/api/auth/github/callback
+
+app:
+  frontend-url: ${APP_FRONTEND_URL}

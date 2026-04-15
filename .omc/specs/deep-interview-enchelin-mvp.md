@@ -25,7 +25,7 @@
 ## Constraints
 - **인증**: GitHub OAuth (현재 User 엔티티 활용, 추후 추가 인증 도입 가능)
 - **접근 제한**: 특정 부트캠프/인원만 사용 가능
-- **배포**: Railway (프론트엔드 Vue + 백엔드 Spring Boot + PostgreSQL 통합)
+- **배포**: Railway 단일 플랫폼 — 앱 서비스 1개(Spring Boot가 API + Vue 정적 파일 동봉 서빙) + Railway PostGIS DB 1개 (Singapore 리전). 운영 변수 최소화 우선, FE/BE 분리 배포 폐기 → same-origin으로 CORS·SameSite=None·withCredentials 운영 포인트 제거.
 - **일정**: 1개월 이내 MVP 완성
 - **기술 스택**: Spring Boot 3.5 + Vue 3 + PostgreSQL 16 (기존 유지)
 - **외부 API**: 카카오 지도/검색 API (기존 연동 유지)
@@ -47,13 +47,17 @@
 - [ ] 모바일 기기에서 반응형 UI가 정상 표시된다
 - [ ] API 에러 시 사용자 친화적 메시지가 표시된다
 - [ ] 로딩 상태가 UI에 표시된다
-- [ ] CI/CD 파이프라인이 구성되어 PR 머지 시 자동 배포된다
-- [ ] Railway에 프론트+백엔드+DB가 정상 배포된다
+- [ ] GitHub main 머지 시 Railway 자동 배포 동작 (Wait for CI 옵션, 실패 시 Railway rollback)
+- [ ] Railway 단일 프로젝트에 앱(Spring Boot + Vue 정적 동봉) 1개 + PostGIS DB 1개로 배포 (Singapore)
+- [ ] Spring Boot가 same-origin으로 Vue SPA 정적 자원과 API를 함께 서빙 (CORS 설정 불필요)
+- [ ] 환경은 local + prod 2개만 운영 (상시 staging 없음)
 
 ## Assumptions Exposed & Resolved
 | Assumption | Challenge | Resolution |
 |------------|-----------|------------|
 | Vercel로 전체 배포 가능 | Vercel은 JVM(Spring Boot)을 지원하지 않음 | Railway로 프론트+백+DB 통합 배포 |
+| FE/BE 분리 배포가 표준 | CORS·SameSite=None·withCredentials·origin 화이트리스트가 1인 운영의 주요 리스크 | FE를 Spring Boot에 동봉(same-origin) → 운영 변수 제거 |
+| Neon Free + Fly가 비용 최적 | scale-to-zero 모드·리전 정렬·벤더 2곳 빌링이 추가 판단 포인트 | 운영 변수 최소화 우선 → Railway 단일 플랫폼(앱+PostGIS) 채택, 비용 프리미엄 수용 |
 | 기본 기능만으로 MVP 충분 | 품질 기준 없이 출시 가능한가? | 모바일 반응형, 에러/로딩 처리, CI/CD 필수 |
 | GitHub OAuth로 접근 제한 가능 | 부트캠프 인원 제한을 어떻게? | 우선 GitHub OAuth 유지, 추후 추가 인증 도입 |
 
