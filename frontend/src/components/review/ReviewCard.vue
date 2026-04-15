@@ -106,6 +106,8 @@ function formatDate(dateStr) {
   font-size: var(--font-size-base);
   line-height: 1.5;
   color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .review-footer {
