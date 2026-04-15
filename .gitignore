@@ -5,6 +5,9 @@ enchelin.iml
 .omc/autopilot/
 .omc/project-memory.json
 
+# Frontend build output (Docker 빌드 산출물)
+backend/src/main/resources/static/
+
 # Environment variables
 .env
 .env.local
