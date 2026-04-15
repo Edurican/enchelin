@@ -1,5 +1,6 @@
 package com.edurican.enchelinbe.auth;
 
+import com.edurican.enchelinbe.service.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -27,6 +28,19 @@ public class JwtProvider {
         Date now = new Date();
         return Jwts.builder()
                 .subject(String.valueOf(userId))
+                .issuedAt(now)
+                .expiration(new Date(now.getTime() + expiration))
+                .signWith(secretKey)
+                .compact();
+    }
+
+    public String createToken(User user) {
+        Date now = new Date();
+        return Jwts.builder()
+                .subject(String.valueOf(user.getId()))
+                .claim("nickname", user.getNickname())
+                .claim("avatarUrl", user.getAvatarUrl())
+                .claim("htmlUrl", user.getHtmlUrl())
                 .issuedAt(now)
                 .expiration(new Date(now.getTime() + expiration))
                 .signWith(secretKey)

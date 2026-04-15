@@ -6,9 +6,11 @@ import com.edurican.enchelinbe.common.exception.BusinessException;
 import com.edurican.enchelinbe.common.exception.ErrorCode;
 import com.edurican.enchelinbe.dto.CreateReviewRequest;
 import com.edurican.enchelinbe.dto.ReviewResponse;
+import com.edurican.enchelinbe.dto.UserStatsResponse;
 import com.edurican.enchelinbe.enums.EntityStatus;
 import com.edurican.enchelinbe.repository.RestaurantRepository;
 import com.edurican.enchelinbe.repository.ReviewRepository;
+import com.edurican.enchelinbe.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class ReviewService {
     private final RestaurantRepository restaurantRepository;
     private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public void createReview(Long userId, CreateReviewRequest request) {
@@ -62,17 +65,29 @@ public class ReviewService {
             default -> throw new BusinessException(ErrorCode.INVALID_INPUT);
         };
 
-        List<ReviewResponse> reviewResponseList = reviewSlice.getContent().stream()
-                .map(review -> toReviewResponse(review, restaurant.getName()))
+        List<Review> content = reviewSlice.getContent();
+        List<Long> userIds = content.stream().map(Review::getUserId).distinct().toList();
+        Map<Long, String> userNames = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getNickname));
+
+        List<ReviewResponse> reviewResponseList = content.stream()
+                .map(review -> toReviewResponse(review, restaurant.getName(), userNames))
                 .toList();
 
         return new Page<>(reviewResponseList, reviewSlice.hasNext());
     }
 
     @Transactional(readOnly = true)
-    public Page<ReviewResponse> getUserReview(Long userId, OffsetLimit offsetLimit) {
-        Slice<Review> reviewSlice = reviewRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
-                userId, EntityStatus.ACTIVE, offsetLimit.toPageable());
+    public Page<ReviewResponse> getUserReview(Long userId, OffsetLimit offsetLimit, String sort) {
+        Slice<Review> reviewSlice = switch (sort) {
+            case "latest" -> reviewRepository.findByUserIdAndStatusOrderByCreatedAtDesc(
+                    userId, EntityStatus.ACTIVE, offsetLimit.toPageable());
+            case "rating" -> reviewRepository.findByUserIdAndStatusOrderByRatingDescCreatedAtDesc(
+                    userId, EntityStatus.ACTIVE, offsetLimit.toPageable());
+            case "name" -> reviewRepository.findByUserIdActiveOrderByRestaurantName(
+                    userId, offsetLimit.toPageable());
+            default -> throw new BusinessException(ErrorCode.INVALID_INPUT);
+        };
         List<Review> content = reviewSlice.getContent();
 
         List<Long> restaurantIds = content.stream().map(Review::getRestaurantId).toList();
@@ -80,11 +95,27 @@ public class ReviewService {
         Map<Long, String> restaurantNames = restaurants.stream()
                 .collect(Collectors.toMap(Restaurant::getId, Restaurant::getName));
 
+        List<Long> userIds = content.stream().map(Review::getUserId).distinct().toList();
+        Map<Long, String> userNames = userRepository.findAllById(userIds).stream()
+                .collect(Collectors.toMap(User::getId, User::getNickname));
+
         List<ReviewResponse> reviewResponseList = content.stream()
-                .map(review -> toReviewResponse(review, restaurantNames.get(review.getRestaurantId())))
+                .map(review -> toReviewResponse(review, restaurantNames.get(review.getRestaurantId()), userNames))
                 .toList();
 
         return new Page<>(reviewResponseList, reviewSlice.hasNext());
+    }
+
+    @Transactional(readOnly = true)
+    public UserStatsResponse getUserStats(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
+        }
+        ReviewRepository.UserStatsProjection stats = reviewRepository.findUserStats(userId);
+        return new UserStatsResponse(
+                stats.getReviewCount().intValue(),
+                stats.getAverageRating()
+        );
     }
 
     @Transactional
@@ -101,7 +132,11 @@ public class ReviewService {
         Restaurant restaurant = restaurantRepository.findById(review.getRestaurantId())
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESTAURANT_NOT_FOUND));
 
-        return toReviewResponse(review, restaurant.getName());
+        String userName = userRepository.findById(review.getUserId())
+                .map(User::getNickname)
+                .orElse(null);
+
+        return toReviewResponse(review, restaurant.getName(), Map.of(review.getUserId(), userName != null ? userName : ""));
     }
 
     @Transactional
@@ -116,11 +151,11 @@ public class ReviewService {
         review.deleted();
     }
 
-    private ReviewResponse toReviewResponse(Review review, String restaurantName) {
+    private ReviewResponse toReviewResponse(Review review, String restaurantName, Map<Long, String> userNames) {
         return new ReviewResponse(
                 review.getId(),
                 review.getUserId(),
-                null, // userName: auth 연동 후 채울 수 있으나 현재 User 조회 생략
+                userNames.getOrDefault(review.getUserId(), null),
                 review.getRestaurantId(),
                 restaurantName,
                 review.getRating(),

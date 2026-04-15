@@ -34,6 +34,6 @@ public class AuthService {
                         .role(RoleEnum.NORMAL)
                         .build()));
 
-        return jwtProvider.createToken(user.getId());
+        return jwtProvider.createToken(user);
     }
 }
