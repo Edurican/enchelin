@@ -24,6 +24,6 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(rateLimitInterceptor)
-                .addPathPatterns("/restaurants/search");
+                .addPathPatterns("/restaurants/search", "/api/auth/exchange");
     }
 }
