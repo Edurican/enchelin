@@ -131,13 +131,21 @@ public class ClaudeRestClient implements ClaudeClient {
             throw new BusinessException(ErrorCode.CLAUDE_API_ERROR);
         }
 
-        String json = response.content().get(0).text();
+        String json = stripCodeFence(response.content().get(0).text());
         try {
             return objectMapper.readValue(json, SummaryJson.class);
         } catch (Exception e) {
             log.error("Claude 응답 JSON 파싱 실패: {}", json, e);
             throw new BusinessException(ErrorCode.CLAUDE_API_ERROR);
         }
+    }
+
+    private static String stripCodeFence(String raw) {
+        if (raw != null && raw.startsWith("```")) {
+            raw = raw.replaceFirst("^```[a-zA-Z]*\\n?", "");
+            raw = raw.replaceFirst("\\n?```\\s*$", "");
+        }
+        return raw;
     }
 
     private String buildUserMessage(String restaurantName, String category, List<ReviewForSummary> reviews) {

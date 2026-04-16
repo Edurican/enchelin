@@ -2,6 +2,8 @@ db_data/
 .idea/
 enchelin.iml
 .omc/state/
+backend/.omc/state/
+frontend/.omc/state/
 .omc/autopilot/
 .omc/project-memory.json
 
