@@ -5,7 +5,7 @@ spring:
    active: ${SPRING_PROFILES_ACTIVE:local}
 
 jwt:
-  secret: ${JWT_SECRET:default-dev-secret-key-that-should-be-changed-in-production-env}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:3600000}
 
 github:

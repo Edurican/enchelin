@@ -18,3 +18,6 @@ frontend/dist/
 .env
 .env.local
 .env.*.local
+
+# Local profile config (may contain secrets)
+backend/src/main/resources/application-local.yml

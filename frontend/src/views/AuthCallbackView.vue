@@ -10,6 +10,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useToast } from '@/composables/useToast'
+import { exchangeToken } from '@/api/auth'
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue'
 import ErrorMessage from '@/components/common/ErrorMessage.vue'
 
@@ -19,11 +20,27 @@ const auth = useAuthStore()
 const toast = useToast()
 const errorMsg = ref('')
 
-onMounted(() => {
-  const token = route.query.token
-  if (token) {
-    auth.setToken(token)
-    router.replace('/map')
+onMounted(async () => {
+  if (route.query.error) {
+    errorMsg.value = '인증에 실패했습니다.'
+    toast.error('로그인에 실패했습니다. 다시 시도해주세요.')
+    setTimeout(() => router.replace('/login'), 2000)
+    return
+  }
+
+  const code = route.query.code
+  if (code) {
+    try {
+      const res = await exchangeToken(code)
+      const token = res.data?.token ?? res.data?.data?.token
+      if (!token) throw new Error('token missing')
+      auth.setToken(token)
+      router.replace('/map')
+    } catch {
+      errorMsg.value = '인증에 실패했습니다.'
+      toast.error('로그인에 실패했습니다. 다시 시도해주세요.')
+      setTimeout(() => router.replace('/login'), 2000)
+    }
   } else {
     errorMsg.value = '인증에 실패했습니다.'
     toast.error('로그인에 실패했습니다. 다시 시도해주세요.')
