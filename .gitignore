@@ -10,6 +10,10 @@ frontend/.omc/state/
 # Frontend build output (Docker 빌드 산출물)
 backend/src/main/resources/static/
 
+# Build artifacts
+backend/build/
+frontend/dist/
+
 # Environment variables
 .env
 .env.local
