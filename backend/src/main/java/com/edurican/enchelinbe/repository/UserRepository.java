@@ -1,6 +1,6 @@
 package com.edurican.enchelinbe.repository;
 
-import com.edurican.enchelinbe.service.User;
+import com.edurican.enchelinbe.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

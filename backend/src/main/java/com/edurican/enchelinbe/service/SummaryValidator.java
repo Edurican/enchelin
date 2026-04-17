@@ -1,5 +1,6 @@
 package com.edurican.enchelinbe.service;
 
+import com.edurican.enchelinbe.entity.Review;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
