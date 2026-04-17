@@ -104,7 +104,7 @@ public class GET_specs {
   }
 
   @Test
-  void Kakao_API_오류_시에도_빈_목록을_반환한다(
+  void Kakao_API_오류_시_502를_반환한다(
       @Autowired Environment environment,
       @Autowired ObjectMapper objectMapper) {
     // Arrange: 500 에러
@@ -116,9 +116,9 @@ public class GET_specs {
     ResponseEntity<String> response = base.client().getForEntity(
         "/restaurant/nearby?x=127.0&y=37.5&radius=1000", String.class);
 
-    // Assert: 에러 시 빈 목록 반환 (예외를 삼키고 빈 결과)
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-    assertThat(response.getBody()).contains("[]");
+    // Assert: Kakao API 오류 시 502 BAD_GATEWAY 반환
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_GATEWAY);
+    assertThat(response.getBody()).contains("K001");
   }
 
   // ==================== Helper Methods ====================
