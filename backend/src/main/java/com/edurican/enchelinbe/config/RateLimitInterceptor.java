@@ -2,30 +2,34 @@ package com.edurican.enchelinbe.config;
 
 import com.edurican.enchelinbe.common.exception.BusinessException;
 import com.edurican.enchelinbe.common.exception.ErrorCode;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.time.Instant;
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 간이 슬라이딩 윈도우 rate limiter.
  * GET /restaurants/search 에 한해 IP당 초당 5회 제한.
+ * Caffeine 캐시를 사용해 비활성 IP 엔트리를 자동 만료한다 (메모리 누수 방지).
  */
 @Component
 public class RateLimitInterceptor implements HandlerInterceptor {
 
     private static final int MAX_REQUESTS_PER_SECOND = 5;
-    final Map<String, Deque<Long>> requestTimestamps = new ConcurrentHashMap<>();
+    /* @VisibleForTesting */ final Cache<String, Deque<Long>> requestTimestamps = Caffeine.newBuilder()
+            .expireAfterAccess(5, TimeUnit.MINUTES)
+            .build();
 
     /** 테스트에서 카운터 초기화용 */
     public void clearAll() {
-        requestTimestamps.clear();
+        requestTimestamps.invalidateAll();
     }
 
     @Override
@@ -36,9 +40,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         long now = Instant.now().toEpochMilli();
         long windowStart = now - 1000;
 
-        requestTimestamps.compute(ip, (key, deque) -> {
+        requestTimestamps.asMap().compute(ip, (key, deque) -> {
             if (deque == null) {
-                deque = new LinkedList<>();
+                deque = new ArrayDeque<>();
             }
             // 1초 밖의 항목 제거
             while (!deque.isEmpty() && deque.peekFirst() < windowStart) {
@@ -55,10 +59,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private String resolveClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
+        // X-Forwarded-For 파싱은 server.forward-headers-strategy=native 설정으로
+        // Spring이 프레임워크 레벨에서 처리한다. request.getRemoteAddr()은
+        // 이미 프록시를 통해 전달된 실제 클라이언트 IP를 반환한다.
         return request.getRemoteAddr();
     }
 }

@@ -15,6 +15,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -36,10 +38,10 @@ public class RestaurantService {
     @Value("${kakao.api.base-url:https://dapi.kakao.com}")
     private String kakaoApiBaseUrl;
 
-    public RestaurantService(RestaurantRepository restaurantRepository, ReviewRepository reviewRepository) {
+    public RestaurantService(RestaurantRepository restaurantRepository, ReviewRepository reviewRepository, @Qualifier("kakaoRestTemplate") RestTemplate kakaoRestTemplate) {
         this.restaurantRepository = restaurantRepository;
         this.reviewRepository = reviewRepository;
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = kakaoRestTemplate;
     }
 
     // ---------------------------------------------------------------------------
@@ -124,7 +126,7 @@ public class RestaurantService {
                     ))
                     .toList();
 
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             log.error("Kakao 검색 API 호출 중 오류 발생 (query: {})", query, e);
             throw new BusinessException(ErrorCode.KAKAO_API_ERROR);
         }
@@ -161,6 +163,9 @@ public class RestaurantService {
                     uri, HttpMethod.GET, httpEntity, KakaoApiResponseDto.class);
 
             KakaoApiResponseDto body = response.getBody();
+            if (body == null || body.getDocuments() == null) {
+                return Collections.emptyList();
+            }
             List<KakaoApiResponseDto.Document> documents = body.getDocuments();
 
             if (documents != null) {
@@ -191,8 +196,9 @@ public class RestaurantService {
                     restaurantMap.put(doc.getId(), restaurant);
                 }
             }
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             log.error("API 호출 중 에러 발생", e);
+            throw new BusinessException(ErrorCode.KAKAO_API_ERROR);
         }
 
         List<Restaurant> resultList = new ArrayList<>(restaurantMap.values());
