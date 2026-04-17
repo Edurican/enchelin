@@ -36,10 +36,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             new String[]{HttpMethod.GET.name(), "/users/**"}
     );
 
+    private static final List<String> API_PREFIXES = List.of(
+            "/api/", "/restaurants", "/restaurant", "/reviews", "/users"
+    );
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         String method = request.getMethod();
+
+        // API 경로가 아니면 필터 스킵 (SPA 라우트)
+        if (API_PREFIXES.stream().noneMatch(path::startsWith)) {
+            return true;
+        }
 
         return PUBLIC_PATHS.stream().anyMatch(entry ->
                 (entry[0].equals("*") || entry[0].equals(method)) &&
