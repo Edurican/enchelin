@@ -4,7 +4,7 @@ import com.edurican.enchelinbe.common.response.ApiResponse;
 import com.edurican.enchelinbe.dto.RestaurantResponse;
 import com.edurican.enchelinbe.dto.RestaurantSearchResponse;
 import com.edurican.enchelinbe.dto.ReviewSummaryResponse;
-import com.edurican.enchelinbe.service.Restaurant;
+import com.edurican.enchelinbe.entity.Restaurant;
 import com.edurican.enchelinbe.service.RestaurantService;
 import com.edurican.enchelinbe.service.ReviewSummaryService;
 import jakarta.validation.constraints.NotBlank;

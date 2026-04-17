@@ -1,5 +1,6 @@
-package com.edurican.enchelinbe.service;
+package com.edurican.enchelinbe.entity;
 
+import com.edurican.enchelinbe.service.SummaryJson;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

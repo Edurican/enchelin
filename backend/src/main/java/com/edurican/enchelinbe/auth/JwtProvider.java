@@ -1,6 +1,6 @@
 package com.edurican.enchelinbe.auth;
 
-import com.edurican.enchelinbe.service.User;
+import com.edurican.enchelinbe.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

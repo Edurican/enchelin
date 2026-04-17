@@ -6,6 +6,7 @@ import com.edurican.enchelinbe.dto.KakaoApiResponseDto;
 import com.edurican.enchelinbe.dto.RestaurantResponse;
 import com.edurican.enchelinbe.dto.RestaurantSearchResponse;
 import com.edurican.enchelinbe.repository.RestaurantRepository;
+import com.edurican.enchelinbe.entity.Restaurant;
 import com.edurican.enchelinbe.repository.ReviewRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

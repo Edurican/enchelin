@@ -1,4 +1,4 @@
-package com.edurican.enchelinbe.service;
+package com.edurican.enchelinbe.entity;
 
 import com.edurican.enchelinbe.enums.RoleEnum;
 import jakarta.persistence.*;

@@ -1,7 +1,7 @@
 package com.edurican.enchelinbe.repository;
 
 import com.edurican.enchelinbe.enums.EntityStatus;
-import com.edurican.enchelinbe.service.Review;
+import com.edurican.enchelinbe.entity.Review;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -2,7 +2,7 @@ package com.edurican.enchelinbe.auth;
 
 import com.edurican.enchelinbe.enums.RoleEnum;
 import com.edurican.enchelinbe.repository.UserRepository;
-import com.edurican.enchelinbe.service.User;
+import com.edurican.enchelinbe.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

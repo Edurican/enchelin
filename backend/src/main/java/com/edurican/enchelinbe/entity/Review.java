@@ -1,4 +1,4 @@
-package com.edurican.enchelinbe.service;
+package com.edurican.enchelinbe.entity;
 
 import com.edurican.enchelinbe.common.exception.BusinessException;
 import com.edurican.enchelinbe.repository.BaseEntity;

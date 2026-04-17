@@ -2,6 +2,7 @@ package com.edurican.enchelinbe.config;
 
 import com.edurican.enchelinbe.auth.AuthenticatedUserArgumentResolver;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
