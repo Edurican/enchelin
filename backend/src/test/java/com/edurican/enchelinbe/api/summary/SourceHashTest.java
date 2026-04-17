@@ -5,7 +5,7 @@ import com.edurican.enchelinbe.api.fixture.AuthFixture;
 import com.edurican.enchelinbe.api.fixture.RestaurantFixture;
 import com.edurican.enchelinbe.api.fixture.ReviewFixture;
 import com.edurican.enchelinbe.repository.ReviewRepository;
-import com.edurican.enchelinbe.service.Review;
+import com.edurican.enchelinbe.entity.Review;
 import com.edurican.enchelinbe.service.SourceHashCalculator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

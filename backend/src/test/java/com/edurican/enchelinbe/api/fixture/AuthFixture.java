@@ -3,7 +3,7 @@ package com.edurican.enchelinbe.api.fixture;
 import com.edurican.enchelinbe.auth.JwtProvider;
 import com.edurican.enchelinbe.enums.RoleEnum;
 import com.edurican.enchelinbe.repository.UserRepository;
-import com.edurican.enchelinbe.service.User;
+import com.edurican.enchelinbe.entity.User;
 
 import java.util.concurrent.atomic.AtomicLong;
 

@@ -9,7 +9,7 @@ import com.edurican.enchelinbe.api.fixture.ReviewFixture;
 import com.edurican.enchelinbe.auth.JwtProvider;
 import com.edurican.enchelinbe.repository.RestaurantRepository;
 import com.edurican.enchelinbe.repository.ReviewRepository;
-import com.edurican.enchelinbe.service.Restaurant;
+import com.edurican.enchelinbe.entity.Restaurant;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;

@@ -6,7 +6,7 @@ import com.edurican.enchelinbe.api.EnchelinApiTest;
 import com.edurican.enchelinbe.api.fixture.AuthFixture;
 import com.edurican.enchelinbe.api.fixture.RestaurantFixture;
 import com.edurican.enchelinbe.api.fixture.ReviewFixture;
-import com.edurican.enchelinbe.service.Restaurant;
+import com.edurican.enchelinbe.entity.Restaurant;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.DisplayName;

@@ -1,7 +1,7 @@
 package com.edurican.enchelinbe.api.fixture;
 
 import com.edurican.enchelinbe.repository.RestaurantRepository;
-import com.edurican.enchelinbe.service.Restaurant;
+import com.edurican.enchelinbe.entity.Restaurant;
 
 public record RestaurantFixture(RestaurantRepository restaurantRepository) {
 

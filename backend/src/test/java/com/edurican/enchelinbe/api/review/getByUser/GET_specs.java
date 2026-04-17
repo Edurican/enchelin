@@ -7,7 +7,7 @@ import com.edurican.enchelinbe.api.fixture.AuthFixture;
 import com.edurican.enchelinbe.api.fixture.RestaurantFixture;
 import com.edurican.enchelinbe.api.fixture.ReviewFixture;
 import com.edurican.enchelinbe.auth.JwtProvider;
-import com.edurican.enchelinbe.service.Restaurant;
+import com.edurican.enchelinbe.entity.Restaurant;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

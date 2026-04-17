@@ -1,6 +1,6 @@
 package com.edurican.enchelinbe.api.summary;
 
-import com.edurican.enchelinbe.service.Review;
+import com.edurican.enchelinbe.entity.Review;
 import com.edurican.enchelinbe.service.SummaryJson;
 import com.edurican.enchelinbe.service.SummaryValidator;
 import org.junit.jupiter.api.BeforeEach;
