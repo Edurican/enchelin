@@ -30,6 +30,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
      */
     private static final List<String[]> PUBLIC_PATHS = List.of(
             new String[]{"*",    "/api/auth/**"},
+            new String[]{HttpMethod.GET.name(), "/api/health"},
             new String[]{HttpMethod.GET.name(), "/restaurants/**"},
             new String[]{HttpMethod.GET.name(), "/restaurant/**"},
             new String[]{HttpMethod.GET.name(), "/users/**"}
