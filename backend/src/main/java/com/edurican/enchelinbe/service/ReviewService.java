@@ -120,7 +120,7 @@ public class ReviewService {
 
     @Transactional
     public ReviewResponse updateReview(Long requestingUserId, Long reviewId, Integer rating, String comment) {
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewRepository.findByIdAndStatus(reviewId, EntityStatus.ACTIVE)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
         if (!review.getUserId().equals(requestingUserId)) {
@@ -141,7 +141,7 @@ public class ReviewService {
 
     @Transactional
     public void deleteReview(Long requestingUserId, Long reviewId) {
-        Review review = reviewRepository.findById(reviewId)
+        Review review = reviewRepository.findByIdAndStatus(reviewId, EntityStatus.ACTIVE)
                 .orElseThrow(() -> new BusinessException(ErrorCode.REVIEW_NOT_FOUND));
 
         if (!review.getUserId().equals(requestingUserId)) {

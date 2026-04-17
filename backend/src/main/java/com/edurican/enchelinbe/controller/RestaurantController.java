@@ -68,6 +68,15 @@ public class RestaurantController {
     }
 
     // ---------------------------------------------------------------------------
+    // POST /restaurants/{id}/review-summary — 강제 AI 요약 생성
+    // ---------------------------------------------------------------------------
+    @PostMapping("/restaurants/{id}/review-summary")
+    public ApiResponse<Void> generateReviewSummary(@PathVariable Long id) {
+        reviewSummaryService.forceGenerateSummary(id);
+        return ApiResponse.success();
+    }
+
+    // ---------------------------------------------------------------------------
     // GET /restaurant/nearby (기존 엔드포인트 유지 - 구 RestaurentController 대체)
     // ---------------------------------------------------------------------------
     @GetMapping("/restaurant/nearby")

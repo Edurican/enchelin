@@ -9,9 +9,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -20,22 +22,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtProvider jwtProvider;
     private final ObjectMapper objectMapper;
 
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
+    /**
+     * 인증 없이 접근 가능한 경로 목록.
+     * 첫 번째 원소: HTTP 메서드 ("*" = 전체), 두 번째 원소: Ant 패턴
+     */
+    private static final List<String[]> PUBLIC_PATHS = List.of(
+            new String[]{"*",    "/api/auth/**"},
+            new String[]{HttpMethod.GET.name(), "/restaurants/**"},
+            new String[]{HttpMethod.GET.name(), "/restaurant/**"},
+            new String[]{HttpMethod.GET.name(), "/users/**"}
+    );
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
         String method = request.getMethod();
 
-        // 인증 경로는 스킵
-        if (path.startsWith("/api/auth/")) {
-            return true;
-        }
-
-        // GET 요청은 공개
-        if (HttpMethod.GET.matches(method)) {
-            return true;
-        }
-
-        return false;
+        return PUBLIC_PATHS.stream().anyMatch(entry ->
+                (entry[0].equals("*") || entry[0].equals(method)) &&
+                PATH_MATCHER.match(entry[1], path)
+        );
     }
 
     @Override

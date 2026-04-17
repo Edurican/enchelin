@@ -5,5 +5,5 @@ export function getGithubLoginUrl() {
 }
 
 export function exchangeToken(code) {
-  return client.post('/api/auth/exchange', { code })
+  return client.post('/api/auth/github/token', { code })
 }
